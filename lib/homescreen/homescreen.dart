@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todoalan/Animation/fadeAnimation.dart';
 
 class homepage extends StatefulWidget {
 
@@ -18,31 +19,38 @@ class homepageState extends State<homepage> {
   Widget build(BuildContext context) {
 
   return Scaffold(
+    floatingActionButton: FloatingActionButton(onPressed: (){
 
+    },
+    backgroundColor: Colors.lightGreenAccent,
+    child: Icon(FontAwesomeIcons.plus, color: Colors.white, ),
+    ),
   appBar: AppBar(
 
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
               icon:  Icon(
-                FontAwesomeIcons.bars,
-                color: Colors.white24, // Change Custom Drawer Icon Color
+                FontAwesomeIcons.bars,size: 25,
+                color: Theme.of(context).hintColor, // Change Custom Drawer Icon Color
               ),
               onPressed: widget.opendrawer
               ),
         title:  Text(
           "ToDo",
           style: TextStyle(
-            color: Colors.white60,fontFamily: 'BrandonBI',
-            fontSize: 18,
+            color: Theme.of(context).hintColor, fontFamily: 'BrandonBI',
+            fontSize: 30,
           ),
         ),
-        elevation: 5.0,
+        elevation: 0.0,
         centerTitle: true,
   ),
   backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
-        child: Text("hi"),
-        ),
+        child:  FadeAnimation(
+                      delay: widget.animationtime,
+                      child:Text("hi"),
+        )),
     );
   }
 } 

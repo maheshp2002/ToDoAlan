@@ -1,13 +1,14 @@
-import 'package:alantodo/homescreen/Drawerhiden/hidendrawer.dart';
-import 'package:alantodo/splash/splash.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+
+//import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
+import 'package:todoalan/splash/splash.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  //await Firebase.initializeApp();
   runApp(RestartWidget(
   child:  MyApp()));
 }
@@ -26,7 +27,7 @@ static MyAppState of(BuildContext context) =>
 class MyAppState extends State<MyApp> {
   /// 1) our themeMode "state" field
   ThemeMode _themeMode = ThemeMode.system;
-  final FirebaseAuth auth = FirebaseAuth.instance;
+  //final FirebaseAuth auth = FirebaseAuth.instance;
   
  @override
   void initState() {
