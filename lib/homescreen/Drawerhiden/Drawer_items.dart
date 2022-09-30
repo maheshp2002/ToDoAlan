@@ -10,11 +10,11 @@ class DrawerItem {
 
 class DrawerItems {
   static final categorise =
-      DrawerItem(title: "Categorise", icon: Icons.grid_view_outlined);
+      DrawerItem(title: "Backup", icon: FontAwesomeIcons.cloudArrowUp);
   static final analytics =
-      DrawerItem(title: "Analytics", icon: FontAwesomeIcons.chartPie);
+      DrawerItem(title: "Notification  sound", icon: Icons.notifications_paused,);
   static final about =
-      DrawerItem(title: "About", icon: Icons.person_outlined);
+      DrawerItem(title: "Logout", icon: Icons.logout);
 
   static final List<DrawerItem> all = [categorise, analytics,about];
 }

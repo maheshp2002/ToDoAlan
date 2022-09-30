@@ -2,7 +2,9 @@
 //import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/splash/splash.dart';
 
 Future<void> main() async{
@@ -32,8 +34,20 @@ class MyAppState extends State<MyApp> {
  @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration(milliseconds: 1), () async{
+    SharedPreferences prefs = await SharedPreferences.getInstance(); 
+    try{
+    prefs.getBool('isDark') == true ? changeTheme(ThemeMode.dark) : changeTheme(ThemeMode.light);  
+    setState(() {
+    isDark = prefs.getBool('isDark');
+    });
+    }catch(e){
+      isDark = false;
+    }
+    });
   }
-    
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,7 +63,7 @@ class MyAppState extends State<MyApp> {
   /// 3) Call this to change theme from any context using "of" accessor
   /// e.g.:
   /// MyApp.of(context).changeTheme(ThemeMode.dark);
-  void changeTheme(ThemeMode themeMode) {
+void changeTheme(ThemeMode themeMode) {
     setState(() {
       _themeMode = themeMode;
     });
@@ -66,8 +80,8 @@ class MyApp2State extends State<MyApp2> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'ToDo',
-    home: HidenDrawer(
+    return Scaffold(
+    body: HidenDrawer(
             animationtime: 0.8,
           ),
     );

@@ -48,10 +48,11 @@ class _DrawerWidgetState extends State<DrawerWidget>
                     leading: Icon(
                       item.icon,
                       color: Colors.white.withOpacity(0.2),
+                      size: 35,
                     ),
                     title: Text(
                       item.title,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white, fontFamily: 'BrandonLI'),
                     ),
                     onTap: () {},
                   ))
@@ -97,12 +98,12 @@ class _DrawerWidgetState extends State<DrawerWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Joy",
-            
+            "ToDo",
+            style: TextStyle(fontFamily: 'BrandonBI', fontSize: 35, color: Colors.white),
           ),
           Text(
-            "Mitchell",
-
+            "Settings",
+            style: TextStyle(fontFamily: 'BrandonLI', fontSize: 20, color: Colors.white)
           ),
         ],
       ),
