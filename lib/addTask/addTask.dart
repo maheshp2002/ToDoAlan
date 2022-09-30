@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 
@@ -44,8 +43,6 @@ class addTaskState extends State<addTask> {
 void initState() {
   super.initState();
   //loadSharedPreferences();
-  tz.initializeTimeZones();
-
     if (todo != null) {
       titleController.text = todo.title;
       descriptionController.text = todo.description;
@@ -242,12 +239,12 @@ if (timepick != null) {
                   date: date,
                   scheduledDate: DateTime.now().add(Duration(seconds: 10))
                 );
-                NotificationApi.showScheduledNotificationNow(
-                                  title: todo.title,
-                  body: todo.description,
-                  payload: "true",
-                  scheduledDate: DateTime.now().add(Duration(hours: int.parse(hours), minutes: int.parse(minutes))),
-                );
+                // NotificationApi.showScheduledNotificationNow(
+                //                   title: todo.title,
+                //   body: todo.description,
+                //   payload: "true",
+                //   scheduledDate: DateTime.now().add(Duration(hours: int.parse(hours), minutes: int.parse(minutes))),
+                // );
                 
                 // saveMapToSP(
                 //   {

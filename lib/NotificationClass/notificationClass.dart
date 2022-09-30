@@ -25,7 +25,7 @@ _notifications.zonedSchedule(
   title,
   body,
  //_scheduleDaily(Time(hh!, mm!, ss!)), 
-  _scheduleWeekly(Time(hh!, mm!, ss!), days: date!),
+  _scheduleWeekly(hh!, mm!, ss!, days: date!),
   await _notificationDetails(),
   payload : payload,
   androidAllowWhileIdle : true,
@@ -35,8 +35,8 @@ _notifications.zonedSchedule(
 );
 
 //schedule notification weekly...................................................................................
-static tz.TZDateTime _scheduleWeekly(Time time, {required List<int> days}) {
-    tz.TZDateTime scheduleDate= _scheduleDaily(time);
+static tz.TZDateTime _scheduleWeekly(int hh, mm, ss, {required List<int> days}) {
+    tz.TZDateTime scheduleDate= _scheduleDaily(hh, mm, ss);
 
     while (!days.contains(scheduleDate.weekday)){
       scheduleDate = scheduleDate.add(Duration(days: 1));
@@ -45,14 +45,14 @@ static tz.TZDateTime _scheduleWeekly(Time time, {required List<int> days}) {
 }
 
 //show notification daily.........................................................................................
-static tz.TZDateTime _scheduleDaily(Time time) {
+static tz.TZDateTime _scheduleDaily(int hh, mm, ss) {
   final now = tz.TZDateTime.now (tz.local);
   final scheduledDate = tz.TZDateTime (
     tz.local,
     now.year,
     now.month,
     now.day,
-    time.hour, time.minute , time.second);
+    hh, mm , ss);
 
 return scheduledDate.isBefore(now)
     ? scheduledDate.add(Duration(days: 1))
@@ -109,24 +109,24 @@ static Future showNotification({
     );
 
 //scheduled notification now.....................................................................................
-static void showScheduledNotificationNow({
-int id = 0 ,
- String ? title,
- String ? body,
- String ? payload,
-  required DateTime scheduledDate,
-} ) async =>
-_notifications.zonedSchedule(
-  id,
-  title,
-  body,
-  tz.TZDateTime.from(scheduledDate, tz.local),
-  await _notificationDetails(),
-  payload : payload,
-  androidAllowWhileIdle : true,
-  uiLocalNotificationDateInterpretation :
-      UILocalNotificationDateInterpretation.absoluteTime,
-);
+// static void showScheduledNotificationNow({
+// int id = 0 ,
+//  String ? title,
+//  String ? body,
+//  String ? payload,
+//   required DateTime scheduledDate,
+// } ) async =>
+// _notifications.zonedSchedule(
+//   id,
+//   title,
+//   body,
+//   tz.TZDateTime.from(scheduledDate, tz.local),
+//   await _notificationDetails(),
+//   payload : payload,
+//   androidAllowWhileIdle : true,
+//   uiLocalNotificationDateInterpretation :
+//       UILocalNotificationDateInterpretation.absoluteTime,
+// );
 
 
 }                

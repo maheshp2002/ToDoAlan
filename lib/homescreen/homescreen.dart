@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
-import 'package:lottie/lottie.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/addTask/addTask.dart';
@@ -61,6 +61,7 @@ class homepageState extends State<homepage> {
 
     NotificationApi.init(initScheduled: true);
     listenNotifications();
+    tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
 
