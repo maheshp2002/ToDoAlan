@@ -230,6 +230,7 @@ if (timepick != null) {
                   todo.time = _eventTime;
                 });
                 NotificationApi.showScheduledNotification(
+                  id: todo.id,
                   title: todo.title,
                   body: todo.description,
                   payload: "true",
@@ -239,22 +240,7 @@ if (timepick != null) {
                   date: date,
                   scheduledDate: DateTime.now().add(Duration(seconds: 10))
                 );
-                // NotificationApi.showScheduledNotificationNow(
-                //                   title: todo.title,
-                //   body: todo.description,
-                //   payload: "true",
-                //   scheduledDate: DateTime.now().add(Duration(hours: int.parse(hours), minutes: int.parse(minutes))),
-                // );
-                
-                // saveMapToSP(
-                //   {
-                //     'title': titleController.text,
-                //     'description': descriptionController.text,
-                //     'category': selectedCategory,
-                //     'time': _eventTime
-                //   },
-                //   'jsonData'
-                // );
+
                 Navigator.pop(context, todo);
                 titleController.clear();
                 descriptionController.clear();

@@ -10,10 +10,10 @@ class NotificationApi {
 
 //scheduled notification.....................................................................................
 static void showScheduledNotification({
-int id = 0 ,
- String ? title,
- String ? body,
- String ? payload,
+ int id = 0,
+ String? title,
+ String? body,
+ String? payload,
  int? hh,
  int? mm,
  int? ss,
@@ -61,21 +61,21 @@ return scheduledDate.isBefore(now)
 
 //notification details............................................................................................
 static Future _notificationDetails() async {
-  return NotificationDetails (
-    android:AndroidNotificationDetails(
+  return NotificationDetails(
+    android: AndroidNotificationDetails(
       'channel id',
       'channel name',
       'channel description',
       importance : Importance.max ,
-    ) , // AndroidNotificationDetails
+    ), // AndroidNotificationDetails
     iOS : IOSNotificationDetails(),
   ) ; // NotificationDetails
 }
 
 //initialize notification.........................................................................................
 static Future init ({bool initScheduled = false}) async {
- final android = AndroidInitializationSettings ('@mipmap/ic_launcher');
-  final iOS = IOSInitializationSettings();
+ final android = AndroidInitializationSettings('@mipmap/ic_launcher');
+ final iOS = IOSInitializationSettings();
  final settings = InitializationSettings(android: android, iOS: iOS);
  
  await _notifications.initialize(

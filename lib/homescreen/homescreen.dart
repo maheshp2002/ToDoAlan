@@ -12,6 +12,7 @@ import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 //global variables................................................................................................
@@ -35,7 +36,8 @@ class homepageState extends State<homepage> {
   String catName = "";
   int sortno = 0;
   bool isLoading = false;
-
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
+   = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 //initializing todo.................................................................................................
   setupTodo() async {
     prefs = await SharedPreferences.getInstance();
@@ -425,7 +427,9 @@ makeListTile(Todo todo, index) {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
 
-    return Card(
+    return GestureDetector(
+    onTap: () => detailTask(todo),
+    child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         width: we * 0.9,
@@ -475,8 +479,31 @@ makeListTile(Todo todo, index) {
           ],
         ),
       ),
-    );
+    ));
 }
+
+//detailed view.......................................................................................................
+  detailTask(Todo todo) {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text(todo.title,textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI')),
+              content: Text(todo.description + "\n" + todo.time, textAlign: TextAlign.center,
+              style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
+              actions: [                
+              Center(child: 
+                FlatButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                    },
+                    child: Text("Close",
+                    style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
+                ),
+              ],
+            ));
+            
+  }
 
 //delete item.......................................................................................................
   delete(Todo todo) {
@@ -495,10 +522,16 @@ makeListTile(Todo todo, index) {
                     child: Text("No",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 FlatButton(
-                    onPressed: () {
+                    onPressed: () async{
                       setState(() {
                         todos.remove(todo);
                       });
+                      try{
+                         await flutterLocalNotificationsPlugin.cancel(todo.id);
+                      } catch(e){
+                        debugPrint(e.toString());
+                      }
+                     
                       Navigator.pop(ctx);
                       saveTodo();
                     },
