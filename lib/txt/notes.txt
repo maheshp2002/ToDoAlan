@@ -1,0 +1,109 @@
+notification
+
+onClicked : ( ) = > NotificationApi.showNotification (
+  title : ' Sarah Abs ' ,
+ body :
+      ' Hey ! Do we have everything we need for the lunch
+            
+    payload : ' sarah.abs ' ,
+
+//2
+import ' package : flutter_local_notifications / flutter_local_notifications .
+Lass NotificationApi {
+  static final notifications = FlutterLocalNotificationsPlugin ( ) ;
+  static final onNotifications = BehaviorSubject < String ? > ( ) ;
+
+static Future _notificationDetails ( ) async {
+  return NotificationDetails (
+    android : AndroidNotification Details (
+      ' channel id ' ,
+      ' channel name ' ,
+      ' channel description ' ,
+      importance : Importance.max ,
+    ) , // AndroidNotificationDetails
+    iOS : IOSNotificationDetails ( ) ,
+  ) ; // NotificationDetails
+}
+
+static Future init ( { bool initScheduled = false } ) async {
+ final android = AndroidInitializationSettings ( @ mipmap / ic_launcher ' );
+  final iOS = IOSInitialization Settings ( ) ;
+ final settings = InitializationSettings ( android : android , iOS : ios )
+ await notifications.initialize (
+    settings ,
+}
+    onSelectNotification : ( payload ) async {
+    } ,
+      onNotifications.add ( payload ) ;
+                    
+static Future showNotification ( {
+  int id = 0 ,
+  String ? title ,
+  String ? body ,
+  String ? payload ,
+} ) async = >
+    _notifications.show (
+    ) ;
+      id ,
+      title ,
+      body ,
+      await notificationDetails ( ) ,
+      payload : payload ,                  
+
+//3
+@override
+void initState ( ) {
+  super.initState ( ) ;
+  NotificationApi.init ( ) ;
+  listenNotifications ( ) ;
+}
+void listenNotifications ( ) = >
+            NotificationApi.onNotifications.stream.listen ( onClicked Notification ) ;
+
+
+void onClickedNotification ( String ? payload )
+    Navigator.of ( context ) .push ( MaterialPageRoute (
+      builder : ( context ) = > SecondPage ( payload : payload ) ,
+    ) ) ; // MaterialPageRoute
+
+
+//4
+static void showScheduled Notification ( {
+  int id = 0 ,
+ String ? title ,
+ String ? body ,
+ String ? payload ,
+  required DateTime scheduledDate ,
+} ) async = >
+_notifications.zonedSchedule (
+  id ,
+  title ,
+  body ,
+ _scheduleDaily Time ( 8 ) ) ,
+  await notificationDetails ( ) ,
+  payload : payload ,
+  androidAllowwhileIdle : true ,
+  uiLocalNotificationDate Interpretation :
+      UILocalNotificationDate Interpretation.absoluteTime ,
+  matchDateTimeComponents : DateTimeComponents.time ,
+);
+static tz.TZDateTime scheduleDaily ( Time time ) {
+  final now = tz.TZDateTime.now ( tz.local ) ;
+  Final scheduledDate = tz.TZDateTime (
+    tz . local ,
+    now . year ,
+    now.month ,
+    now.day ,
+    time.hour , time.minute , time.second ) ;
+
+return scheduledDate.isBefore ( now )
+    ? scheduledDate.add ( Duration ( day : 1 ) )
+    : scheduledDate ;
+}
+}
+
+//5
+  scheduledDate : DateTime.now ( ) . add ( Duration ( seconds : 12 ) ) ,
+
+
+scheduleWeekly ( Time ( 8 ] , days : [ DateTime.monday , DateTime . tuesday

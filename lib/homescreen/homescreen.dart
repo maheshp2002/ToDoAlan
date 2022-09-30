@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
-import 'package:todoalan/NotificationClass/notification.dart';
+import 'package:lottie/lottie.dart';
+import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -58,7 +59,8 @@ class homepageState extends State<homepage> {
   void initState() {
     super.initState();
 
-    NotificationService().initNotification();
+    NotificationApi.init(initScheduled: true);
+    listenNotifications();
 
     setupTodo(); //call setupTodo to initialize
 
@@ -69,6 +71,17 @@ class homepageState extends State<homepage> {
     });
   }
 
+
+
+void listenNotifications() =>
+            NotificationApi.onNotifications.stream.listen(onClickedNotification);
+
+
+void onClickedNotification(String? payload)=> debugPrint(payload);
+    // Navigator.of(context).push(MaterialPageRoute(
+    //   builder : (context) => addTask(payload : payload),
+    // )); // MaterialPageRoute
+
   @override
   Widget build(BuildContext context) {
   var we = MediaQuery.of(context).size.width;
@@ -76,8 +89,6 @@ class homepageState extends State<homepage> {
 
   return Scaffold(
     floatingActionButton: FloatingActionButton(onPressed: (){
-      //Navigator.push(context,
-      //MaterialPageRoute(builder: (context)=> addTask(todo: null,)));
       addTodo();
     },
     backgroundColor: Color.fromARGB(255, 255, 178, 89),
@@ -92,13 +103,6 @@ class homepageState extends State<homepage> {
                 ),
                 onPressed: widget.opendrawer
                 ),
-          // title:  Text(
-          //   "ToDo",
-          //   style: TextStyle(
-          //     color: Theme.of(context).hintColor, fontFamily: 'BrandonBI',
-          //     fontSize: 30,
-          //   ),
-          // ),
     actions: [
           IconButton(onPressed: () async{
           SharedPreferences prefs = await SharedPreferences.getInstance();   
@@ -168,7 +172,7 @@ class homepageState extends State<homepage> {
                             _buildCategories(context, "Personal",
                                 const Color(0xFF0011FF), todos.where((c) => c.category == "Personal").length),
                             _buildCategories(context, "Sports",
-                                Colors.red.withOpacity(0.6), todos.where((c) => c.category == "Education").length),
+                                Colors.red.withOpacity(0.6), todos.where((c) => c.category == "Sports").length),
                             _buildCategories(context, "Education",
                                 Colors.green.withOpacity(0.6), todos.where((c) => c.category == "Work").length),
                             _buildCategories(context, "Medical",
@@ -202,28 +206,30 @@ class homepageState extends State<homepage> {
                                 ? const CircularProgressIndicator()
                                 : todos.isEmpty
                                     ? Center(
+                                        child: isDark == true ?
+                                        FadeAnimation(
+                                        delay: 1,
                                         child: Image.asset(
-                                          "assets/78347-no-search-result.json",
-                                          width: we * 0.6,
-                                        ),
+                                          "assets/gif/ghost3.gif",
+                                          width: 300,
+                                          height: 300,
+                                        ))                                        
+                                        : FadeAnimation(
+                                        delay: 1,
+                                        child: Image.asset(
+                                          "assets/gif/ghost1.gif",
+                                          width: 300,
+                                          height: 300,
+                                        )),
                                       )
-    :  //Container(alignment: Alignment.center,
-     // padding: EdgeInsets.only(bottom: 100),
-     // height: 500,
-        //child:  
-        FadeAnimation(
+    : Padding(padding: EdgeInsets.only(left: 10),
+    child: FadeAnimation(
           delay: widget.animationtime,
-          child: 
-
-
-            ListView.builder(
+          child: ListView.builder(
             itemCount: todos.length,
             itemBuilder:
             (BuildContext context, int index) {
              // ignore: non_constant_identifier_names
-              //final IsSelected =
-              //all_selected_tasks.contains(
-              //noted[index].description);
 
               return isCategory == true ? 
 
@@ -316,7 +322,7 @@ class homepageState extends State<homepage> {
             physics: const BouncingScrollPhysics(),
             )           
         ))
-        ),
+        )),
     ]));
   }
 
@@ -326,7 +332,21 @@ class homepageState extends State<homepage> {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
 
-    return Card(
+    return GestureDetector(
+    onTap: (){
+      if (!isCategory) {
+        setState(() {
+          isCategory = true;
+          catName = title;
+        });
+      } else {
+        setState(() {
+          isCategory = false;
+          catName = "";
+        });
+      }
+    },
+    child: Card(
       margin: const EdgeInsets.only(left: 23),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       clipBehavior: Clip.antiAlias,
@@ -367,7 +387,7 @@ class homepageState extends State<homepage> {
           ],
         ),
       ),
-    );
+    ));
   }
 
 //get value from addTask...................................................................................
@@ -388,17 +408,19 @@ class homepageState extends State<homepage> {
 
 makeListTile(Todo todo, index) {
     Color color = Colors.red;
-    if (todo.title == "Work") {
+    if (todo.category == "Work") {
       color = const Color(0xFFAC05FF);
-    } else if (todo.title == "Personal") {
+    } else if (todo.category == "Personal") {
       color = const Color(0xFF0011FF);
-    } else if (todo.title == "Sports") {
+    } else if (todo.category == "Sports") {
       color = Colors.red;
-    } else if (todo.title == "Education") {
+    } else if (todo.category == "Education") {
       color = Colors.green;
-    } else if (todo.title == "Family") {
-      color = Colors.orange;
-    }
+    } else if (todo.category == "Medical") {
+      color = Colors.yellow;
+    } else if (todo.category == "Others") {
+      color = Color.fromARGB(255, 50, 239, 253);
+    } 
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
 
@@ -438,7 +460,7 @@ makeListTile(Todo todo, index) {
               width: we * 0.025,
             ),
             Expanded(
-                child: Text(todo.description,
+              child: Text(todo.title,
                     maxLines: 20,
                     overflow: TextOverflow.clip,
                     style: TextStyle(
@@ -454,71 +476,6 @@ makeListTile(Todo todo, index) {
       ),
     );
 }
-//  makeListTile(Todo todo, index) {
-    // return GestureDetector(
-    // onHorizontalDragEnd: (DragEndDetails details) {
-    // if (details.primaryVelocity! > 0) {
-    //   // Right Swipe
-    //   delete(todo);
-    // }
-    // },
-    // child: ListTile(
-    //     shape: StadiumBorder(),
-    //     contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-    //     leading: Container(
-    //       padding: EdgeInsets.only(right: 12.0),
-    //       decoration: new BoxDecoration(
-    //       border: new Border(
-    //       right: new BorderSide(width: 1.0, color: Theme.of(context).scaffoldBackgroundColor))),
-    //       child: CircleAvatar(
-    //         backgroundColor: Theme.of(context).hintColor,
-    //         child: Text("${index + 1}"),
-    //       ),
-    //     ),
-    //     title:// Row(
-    //       //children: [
-    //         Text(
-    //           todo.title,
-    //           style:
-    //               TextStyle(color: Theme.of(context).hintColor, fontWeight: FontWeight.bold, fontFamily: 'BrandonBI',
-    //               decoration: todo.isCompleted ? TextDecoration.lineThrough: TextDecoration.none,
-    //               decorationColor: Theme.of(context).hintColor),
-    //         ),
-    //         // SizedBox(
-    //         //   width: 10,
-    //         // ),
-    //         // todo.isCompleted
-    //         //     ? Icon(
-    //         //         Icons.verified,
-    //         //         color: Colors.greenAccent,
-    //         //       )
-    //         //     : Container()
-    //      // ],
-    //     //),
-    //     // subtitle: Text("Intermediate", style: TextStyle(color: Colors.white)),
-
-    //     subtitle: Wrap(
-    //       children: <Widget>[
-    //         Text(todo.description,
-    //             overflow: TextOverflow.clip,
-    //             maxLines: 1,
-    //             style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI',
-    //             decoration: todo.isCompleted ? TextDecoration.lineThrough: TextDecoration.none,
-    //             decorationColor: Theme.of(context).hintColor))
-    //       ],
-    //     ),
-    //     trailing: InkWell(
-    //         onTap: () {
-    //           setState(() {              
-    //           todo.isCompleted = !todo.isCompleted;
-    //           });
-    //           //delete(todo);
-    //         },
-    //         child: Icon(todo.isCompleted ? FontAwesomeIcons.circleCheck
-    //         : FontAwesomeIcons.circle, color: todo.isCompleted  ? Color.fromARGB(255, 1, 255, 9) 
-    //         : Theme.of(context).hintColor, size: 30.0))
-    //         ));
-//  }
 
 //delete item.......................................................................................................
   delete(Todo todo) {
@@ -552,8 +509,3 @@ makeListTile(Todo todo, index) {
   }
 
 } 
-class SalesData {
-  SalesData(this.year, this.sales);
-  final double year;
-  final double sales;
-}

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todoalan/NotificationClass/notification.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
@@ -22,6 +22,7 @@ class addTaskState extends State<addTask> {
 
   SelectedColor selected = SelectedColor.Work;
   List<Todo> list = [];
+
 //controllerd for textfield................................................................................
   TextEditingController titleController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
@@ -36,6 +37,7 @@ class addTaskState extends State<addTask> {
   String hours = now.toString().substring(10, 15);
   String minutes = now.toString().substring(10, 15);
   String _eventTime = now.toString().substring(10, 15);
+  List<int> date = [1, 2, 3, 4, 5, 6, 7];
 
 //this code run when app opens...............................................................................
 @override
@@ -230,8 +232,21 @@ if (timepick != null) {
                   todo.category = selectedCategory;
                   todo.time = _eventTime;
                 });
-                NotificationService().showNotification(
-                  1, titleController.text, descriptionController.text, int.parse(hours) , int.parse(minutes)
+                NotificationApi.showScheduledNotification(
+                  title: todo.title,
+                  body: todo.description,
+                  payload: "true",
+                  hh:  int.parse(hours),
+                  mm: int.parse(minutes),
+                  ss: int.parse("00"),
+                  date: date,
+                  scheduledDate: DateTime.now().add(Duration(seconds: 10))
+                );
+                NotificationApi.showScheduledNotificationNow(
+                                  title: todo.title,
+                  body: todo.description,
+                  payload: "true",
+                  scheduledDate: DateTime.now().add(Duration(hours: int.parse(hours), minutes: int.parse(minutes))),
                 );
                 
                 // saveMapToSP(
