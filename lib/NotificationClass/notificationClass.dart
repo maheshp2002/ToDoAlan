@@ -65,7 +65,7 @@ static Future _notificationDetails() async {
     android: AndroidNotificationDetails(
       'channel id',
       'channel name',
-      'channel description',
+      //'channel description',
       importance : Importance.max ,
     ), // AndroidNotificationDetails
     iOS : IOSNotificationDetails(),

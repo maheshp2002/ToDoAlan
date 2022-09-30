@@ -42,7 +42,9 @@ class MyAppState extends State<MyApp> {
     isDark = prefs.getBool('isDark');
     });
     }catch(e){
-      isDark = false;
+      setState(() {
+        isDark = false;
+      });
     }
     });
   }

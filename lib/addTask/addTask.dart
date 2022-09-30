@@ -3,6 +3,7 @@ import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
 
@@ -31,6 +32,7 @@ class addTaskState extends State<addTask> {
 
   //local variables........................................................................................
   String selectedCategory = "Work";
+  bool isPickerSelected = false;
   static DateTime _eventdDate = DateTime.now();
   static var now =  TimeOfDay.fromDateTime(DateTime.parse(_eventdDate.toString()));
   String hours = now.toString().substring(10, 15);
@@ -96,11 +98,13 @@ TimeOfDay? timepick = await showTimePicker(
 
 if (timepick != null) {
   setState(() {
+    isPickerSelected = true;
     _eventTime = timepick.toString().substring(10, 15);
     hours = timepick.toString().substring(10, 12);
     minutes = timepick.toString().substring(13, 15);
   });
-} }
+} 
+}
 
   @override
   Widget build(BuildContext context) {
@@ -225,15 +229,60 @@ if (timepick != null) {
                 primary: Color.fromARGB(255, 255, 178, 89),
               ),
               onPressed: () {
+              if (titleController.text.trim().isEmpty && descriptionController.text.trim().isEmpty){
+
+                  Fluttertoast.showToast(  
+                  msg: 'Please make sure all fields are filled ..!',  
+                  toastLength: Toast.LENGTH_LONG,  
+                  gravity: ToastGravity.BOTTOM,  
+                  backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                  textColor: Colors.white); 
+
+                }
+
+              else if (titleController.text.trim().isEmpty)
+              { 
+                Fluttertoast.showToast(  
+                msg: 'Please enter a title..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Colors.red,  
+                textColor: Colors.white); 
+              } 
+              
+              else if (descriptionController.text.trim().isEmpty)
+              { 
+                Fluttertoast.showToast(  
+                msg: 'Please enter description..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Colors.red,  
+                textColor: Colors.white); 
+
+              } 
+
+              else if (!isPickerSelected)
+              { 
+                Fluttertoast.showToast(  
+                msg: 'Please pick a time..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Colors.red,  
+                textColor: Colors.white); 
+
+              } else {
                 setState(() {
                   todo.category = selectedCategory;
                   todo.time = _eventTime;
                 });
+                
+                //setting scheduled notification
+                          
                 NotificationApi.showScheduledNotification(
                   id: todo.id,
                   title: todo.title,
                   body: todo.description,
-                  payload: "true",
+                  payload: todo.title,
                   hh:  int.parse(hours),
                   mm: int.parse(minutes),
                   ss: int.parse("00"),
@@ -247,7 +296,7 @@ if (timepick != null) {
                 setState(() {
                   _eventdDate = DateTime.now();
                 });
-
+              }
               },
               child: Text("Add Task", style: TextStyle(
                fontFamily: "BrandonLI",

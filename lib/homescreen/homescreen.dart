@@ -13,6 +13,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 
 //global variables................................................................................................
@@ -36,6 +37,8 @@ class homepageState extends State<homepage> {
   String catName = "";
   int sortno = 0;
   bool isLoading = false;
+  FlutterTts flutterTts = FlutterTts();
+
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 //initializing todo.................................................................................................
@@ -66,21 +69,42 @@ class homepageState extends State<homepage> {
     tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
-
     Future.delayed(Duration(milliseconds: 100), () async{
       setState(() {      
        sortno = todos.length;
       });
     });
   }
+// fluttertts(){
 
+// flutterTts.setStartHandler(() {
+//   setState(() {
+//     print("playing");
+//     ttsState = TtsState.playing;
+//   });
+// });
+// flutterTts.setCompletionHandler(() {
+//   setState(() {
+//     print("Complete");
+//     ttsState = TtsState.stopped;
+//   });
+// });
+// flutterTts.setErrorHandler((msg) {
+//   setState(() {
+//     print("error: $msg");
+//     ttsState = TtsState.stopped;
+//   });
+// });
+// }
 
-
+//lsiten to notification..........................................................................................
 void listenNotifications() =>
             NotificationApi.onNotifications.stream.listen(onClickedNotification);
 
 
-void onClickedNotification(String? payload)=> debugPrint(payload);
+void onClickedNotification(String? payload)async{
+  await flutterTts.speak(payload.toString());
+}      
     // Navigator.of(context).push(MaterialPageRoute(
     //   builder : (context) => addTask(payload : payload),
     // )); // MaterialPageRoute
@@ -336,7 +360,7 @@ void onClickedNotification(String? payload)=> debugPrint(payload);
     var he = MediaQuery.of(context).size.height;
 
     return GestureDetector(
-    onTap: (){
+    onTap: ()async{
       if (!isCategory) {
         setState(() {
           isCategory = true;
@@ -441,15 +465,33 @@ makeListTile(Todo todo, index) {
             Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async{
                     if (!todo.isCompleted) {
                       setState(() {
                         todo.isCompleted = true;
                       });
+                      await flutterLocalNotificationsPlugin.cancel(todo.id);
                     } else {
                       setState(() {
                         todo.isCompleted = false;
-                      });                      
+                      });
+
+                      String hours = todo.time.toString().substring(0, 2);
+                      String minutes = todo.time.toString().substring(3, 5);   
+                      List<int> date = [1, 2, 3, 4, 5, 6, 7];
+                      //print(hours);
+                      //print(minutes);
+                      NotificationApi.showScheduledNotification(
+                      id: todo.id,
+                      title: todo.title,
+                      body: todo.description,
+                      payload: "true",
+                      hh:  int.parse(hours),
+                      mm: int.parse(minutes),
+                      ss: int.parse("00"),
+                      date: date,
+                      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+                    );
                     }
                   },
                   child: todo.isCompleted
