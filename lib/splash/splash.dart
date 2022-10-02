@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/main.dart';
-
 
 
 class Splash extends StatefulWidget {
@@ -17,7 +17,8 @@ class Splash extends StatefulWidget {
 
   _navigatetoHome()async{
     await Future.delayed(const Duration(milliseconds: 3000), () {});
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp2()));
+    getUserEmail == "notSigned" ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp2()))
+    : Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
   }
 
   @override

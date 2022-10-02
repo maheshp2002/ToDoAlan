@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:todoalan/login/services/googlesignin.dart';
+import 'package:todoalan/main.dart';
 import 'drawer_items.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class DrawerWidget extends StatefulWidget {
   VoidCallback closdDrawer;
@@ -54,7 +58,9 @@ class _DrawerWidgetState extends State<DrawerWidget>
                       item.title,
                       style: const TextStyle(color: Colors.white, fontFamily: 'BrandonLI'),
                     ),
-                    onTap: () {},
+                    onTap: () async{
+                      await _logout();
+                    },
                   ))
               .toList(),
         ),
@@ -87,6 +93,58 @@ class _DrawerWidgetState extends State<DrawerWidget>
               ))),
     );
   }
+  
+  //logout......................................................................................................
+   _logout()  async{ 
+     await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor ,
+          title:  Text("Do you want to logout?", textAlign: TextAlign.center,
+          style:  TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor,fontWeight: FontWeight.bold)),
+          actions: <Widget>[
+          ElevatedButton(  
+            style: ElevatedButton.styleFrom(
+              primary: Theme.of(context).scaffoldBackgroundColor 
+             ),               
+            child:  Text('Cancel',style: TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor)),  
+            onPressed: () {  
+              Navigator.of(context).pop();  
+            },  
+          ),  
+          ElevatedButton(  
+            style: ElevatedButton.styleFrom(
+              primary: Theme.of(context).scaffoldBackgroundColor 
+             ),               
+            child:  Text('Logout',style: TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor)),  
+            onPressed: () async { 
+
+            FirebaseService service = new FirebaseService();
+            await service.signOutFromGoogle();
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('validation', false); 
+            await  prefs.setBool('isDark', false);   
+
+
+            RestartWidget.restartApp(context);
+
+            Navigator.of(context).pop();  
+            Fluttertoast.showToast(  
+            msg: 'Signed out!',  
+            toastLength: Toast.LENGTH_LONG,  
+            gravity: ToastGravity.BOTTOM,  
+            backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+            textColor: Colors.white  
+            );  
+
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MyApp()));
+
+            }, 
+            ),
+
+          ],
+        ));
+  } 
 
   Widget _buidText(context) {
     var we = MediaQuery.of(context).size.width;

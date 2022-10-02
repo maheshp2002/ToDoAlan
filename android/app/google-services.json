@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "447836237815",
+    "project_id": "todoalan-ea3ad",
+    "storage_bucket": "todoalan-ea3ad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447836237815:android:22358f1fb9fa5b476e08f2",
+        "android_client_info": {
+          "package_name": "com.alantodo.todoalan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "447836237815-0spie7no3so7n3407ss6af9dr2bpvnro.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alantodo.todoalan",
+            "certificate_hash": "13308d69d23c412ba5c6d3f64e768ac516483f34"
+          }
+        },
+        {
+          "client_id": "447836237815-cdhofav3v15p7vd159992b8psim01u17.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlLhV_7O6xtR8nc3pprJlZ5gfTF9RL_y4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "447836237815-cdhofav3v15p7vd159992b8psim01u17.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,20 +1,22 @@
 
-//import 'package:firebase_auth/firebase_auth.dart';
-//import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:todoalan/login/login.dart';
 import 'package:todoalan/splash/splash.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
-  //await Firebase.initializeApp();
+  await Firebase.initializeApp();
   runApp(RestartWidget(
   child:  MyApp()));
 }
 
+//global variable..........................................................................................
+  late var getUserEmail; //to get user email id
 
 class MyApp extends StatefulWidget {
   @override
@@ -29,7 +31,6 @@ static MyAppState of(BuildContext context) =>
 class MyAppState extends State<MyApp> {
   /// 1) our themeMode "state" field
   ThemeMode _themeMode = ThemeMode.system;
-  //final FirebaseAuth auth = FirebaseAuth.instance;
   
  @override
   void initState() {
@@ -47,8 +48,16 @@ class MyAppState extends State<MyApp> {
       });
     }
     });
+
+    getCurrentUser();
   }
 
+    Future getCurrentUser() async {
+    setState(() {
+        
+    getUserEmail =  FirebaseAuth.instance.currentUser ?? "notSigned";
+    });
+    return getUserEmail;}
 
   @override
   Widget build(BuildContext context) {
@@ -74,21 +83,45 @@ void changeTheme(ThemeMode themeMode) {
 }
 
 class MyApp2 extends StatefulWidget {
+
   @override
   MyApp2State createState() => MyApp2State();
 }
-class MyApp2State extends State<MyApp2> {
 
-
+class MyApp2State extends State<MyApp2>{
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    body: HidenDrawer(
-            animationtime: 0.8,
-          ),
+      backgroundColor: Color(0xFFd2c4b5),
+      body:  Container(
+        decoration: const BoxDecoration(
+              gradient: LinearGradient(
+               colors: [Color(0xFFd2c4b5),Color(0xFFd2c4b5),Color(0xFFdbcab5), Color(0xFFd7c6b4)],
+              begin: Alignment.topLeft,
+               end: Alignment.bottomRight,
+          )),
+      child:
+      Column(mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+      Image.asset("assets/login/login3.gif"),
+
+      SizedBox(height: 10,),
+      
+      Text("Please login..!", style: TextStyle(fontSize: 25, fontFamily: 'BrandonBI', color: Colors.grey),),
+
+      SizedBox(height: 10,),
+
+      Center(child: 
+      GoogleSignIn(),),
+
+      ],)
+      ),
+      
     );
   }
-} 
+
+}
 //restart app......................................................................................................
 class RestartWidget extends StatefulWidget {
   RestartWidget({required this.child});

@@ -14,6 +14,7 @@ import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 //global variables................................................................................................
@@ -38,13 +39,15 @@ class homepageState extends State<homepage> {
   int sortno = 0;
   bool isLoading = false;
   FlutterTts flutterTts = FlutterTts();
+  User? user = FirebaseAuth.instance.currentUser;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
+   
 //initializing todo.................................................................................................
   setupTodo() async {
     prefs = await SharedPreferences.getInstance();
-    String? stringTodo = prefs!.getString('todo');
+    String? stringTodo = prefs!.getString(user!.email!);
     List todoList = jsonDecode(stringTodo!);
 
     for (var todo in todoList) {
@@ -57,7 +60,7 @@ class homepageState extends State<homepage> {
 //save data to todo..................................................................................................
   void saveTodo() {
     List items = todos.map((e) => e.toJson()).toList();
-    prefs!.setString('todo', jsonEncode(items));
+    prefs!.setString(user!.email!, jsonEncode(items));
   }
 
   @override
@@ -201,7 +204,7 @@ void onClickedNotification(String? payload)async{
                             _buildCategories(context, "Sports",
                                 Colors.red.withOpacity(0.6), todos.where((c) => c.category == "Sports").length),
                             _buildCategories(context, "Education",
-                                Colors.green.withOpacity(0.6), todos.where((c) => c.category == "Work").length),
+                                Colors.green.withOpacity(0.6), todos.where((c) => c.category == "Education").length),
                             _buildCategories(context, "Medical",
                                 const Color.fromARGB(255, 229, 255, 0), todos.where((c) => c.category == "Medical").length),
                             _buildCategories(context, "Others",
@@ -268,9 +271,6 @@ void onClickedNotification(String? payload)async{
               children: [
               SlidableAction(
               onPressed: (context) {
-              setState(() {              
-              todos[index].isCompleted = !todos[index].isCompleted;
-              });
               delete(todos[index]);
               },
               backgroundColor:const Color(0xFFFE4A49),
@@ -284,7 +284,7 @@ void onClickedNotification(String? payload)async{
                 context,
                 MaterialPageRoute(
                 builder: (context) =>
-                addTask(todo: todos[index])));
+                addTask(todo: todos[index], isEdit: true,)));
                 if (t != null) {
                   setState(() {
                   todos[index] = t;
@@ -311,9 +311,6 @@ void onClickedNotification(String? payload)async{
               children: [
               SlidableAction(
               onPressed: (context) {
-              setState(() {              
-              todos[index].isCompleted = !todos[index].isCompleted;
-              });
               delete(todos[index]);
               },
               backgroundColor:const Color(0xFFFE4A49),
@@ -327,7 +324,7 @@ void onClickedNotification(String? payload)async{
                 context,
                 MaterialPageRoute(
                 builder: (context) =>
-                addTask(todo: todos[index])));
+                addTask(todo: todos[index], isEdit:  true,)));
                 if (t != null) {
                   setState(() {
                   todos[index] = t;
@@ -422,7 +419,7 @@ void onClickedNotification(String? payload)async{
     int id = Random().nextInt(30);
     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
     Todo returnTodo = await Navigator.push(
-        context, MaterialPageRoute(builder: (context) => addTask(todo: t)));
+        context, MaterialPageRoute(builder: (context) => addTask(todo: t, isEdit: false,)));
     if (returnTodo != null) {
       setState(() {
         todos.add(returnTodo);
@@ -485,7 +482,7 @@ makeListTile(Todo todo, index) {
                       id: todo.id,
                       title: todo.title,
                       body: todo.description,
-                      payload: "true",
+                      payload: todo.description,
                       hh:  int.parse(hours),
                       mm: int.parse(minutes),
                       ss: int.parse("00"),
@@ -529,9 +526,9 @@ makeListTile(Todo todo, index) {
     return showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-              title: Text(todo.title,textAlign: TextAlign.center,
+              title: Text(todo.title,textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI')),
-              content: Text(todo.description + "\n" + todo.time, textAlign: TextAlign.center,
+              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 

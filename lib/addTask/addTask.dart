@@ -4,21 +4,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
 
 class addTask extends StatefulWidget {
 
   Todo todo;
-  addTask({Key? key, required this.todo}) : super(key: key);
+  bool isEdit;
+  addTask({Key? key, required this.todo, required this.isEdit}) : super(key: key);
 
   @override
-  addTaskState createState() => addTaskState(todo: this.todo);
+  addTaskState createState() => addTaskState(todo: this.todo, isEdit: this.isEdit);
 }
 class addTaskState extends State<addTask> {
   
   Todo todo;
-  addTaskState({required this.todo});
+  bool isEdit;
+  addTaskState({required this.todo, required this.isEdit});
 
   SelectedColor selected = SelectedColor.Work;
   List<Todo> list = [];
@@ -39,57 +42,26 @@ class addTaskState extends State<addTask> {
   String minutes = now.toString().substring(10, 15);
   String _eventTime = now.toString().substring(10, 15);
   List<int> date = [1, 2, 3, 4, 5, 6, 7];
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
+   = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 
 //this code run when app opens...............................................................................
 @override
 void initState() {
   super.initState();
-  //loadSharedPreferences();
+  //check if is editing
     if (todo != null) {
       titleController.text = todo.title;
       descriptionController.text = todo.description;
+     if(isEdit) {
+     _eventTime = todo.time;
+     hours = todo.time.toString().substring(0, 2);
+     minutes = todo.time.toString().substring(3, 5);   
+     isPickerSelected = true;
+     }
+      setState(() {});
     }
 }
-
-// //initializing sharedpreference...............................................................................
-// void loadSharedPreferences() async {
-//   sharedPreferences = await SharedPreferences.getInstance();
-// }
-
-// //set string..................................................................
-// void saveStringToSP(String key, String value){
-//   if(value.isNotEmpty && key.isNotEmpty) {
-//     sharedPreferences!.setString(key, value);
-//   }
-// }
-
-// //get string...................................................................
-// String getStringFromSP(String key){
-//   if(key.isNotEmpty){
-//     String? value = sharedPreferences!.getString(key);
-//     if(value != null)
-//       return value;
-//     else
-//       return '';
-//   }else{
-//     return '';
-//   }
-// }
-
-// //Map into a String with jsonencode............................................
-// void saveMapToSP(Map map, String key){
-//   String jsonString = jsonEncode(map);
-//   saveStringToSP(key, jsonString);
-// }
-
-// //load json data from sharedpreference...........................................
-// Map getMapFromSP(String key){
-//   String string = getStringFromSP(key);
-//   if(string != null && string.isNotEmpty)
-//     return jsonDecode(string);
-//   else
-//     return {};
-// }
 
 //timepicker......................................................................
 Future _pickTime() async {
@@ -136,6 +108,9 @@ if (timepick != null) {
                       ),
                       child: IconButton(
                           onPressed: () {
+                            setState(() {
+                              isEdit = false;
+                            });
                             Navigator.of(context).pop();
                           },
                           icon: const Icon(
@@ -228,7 +203,7 @@ if (timepick != null) {
                 shape: StadiumBorder(),
                 primary: Color.fromARGB(255, 255, 178, 89),
               ),
-              onPressed: () {
+              onPressed: () async{
               if (titleController.text.trim().isEmpty && descriptionController.text.trim().isEmpty){
 
                   Fluttertoast.showToast(  
@@ -276,13 +251,22 @@ if (timepick != null) {
                   todo.time = _eventTime;
                 });
                 
+                //if is editing remove previous scheduled notification first
+                if (isEdit) {
+                  try {
+                    await flutterLocalNotificationsPlugin.cancel(todo.id);
+                  } catch(e) {
+                    debugPrint(e.toString());
+                  }                
+                }
+
                 //setting scheduled notification
                           
                 NotificationApi.showScheduledNotification(
                   id: todo.id,
                   title: todo.title,
                   body: todo.description,
-                  payload: todo.title,
+                  payload: todo.description,
                   hh:  int.parse(hours),
                   mm: int.parse(minutes),
                   ss: int.parse("00"),
@@ -291,10 +275,13 @@ if (timepick != null) {
                 );
 
                 Navigator.pop(context, todo);
+
                 titleController.clear();
                 descriptionController.clear();
+
                 setState(() {
                   _eventdDate = DateTime.now();
+                  isEdit = false;
                 });
               }
               },
