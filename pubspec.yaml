@@ -68,7 +68,8 @@ dev_dependencies:
 
   #Alan voice
   alan_voice: ^3.6.0
-
+  speech_to_text_revised: ^1.0.6
+  
   #notification
   flutter_tts: ^3.5.3
   flutter_local_notifications: ^9.1.5

@@ -10,12 +10,13 @@ import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:alan_voice/alan_voice.dart';
 
 //global variables................................................................................................
 late bool? isDark;
@@ -63,6 +64,13 @@ class homepageState extends State<homepage> {
     prefs!.setString(user!.email!, jsonEncode(items));
   }
 
+//Alan button......................................................................................................
+  setUpalan() {
+    AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
+        buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT);
+    AlanVoice.callbacks.add((command) => _handleCmd(command.data));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -77,28 +85,9 @@ class homepageState extends State<homepage> {
        sortno = todos.length;
       });
     });
+    setUpalan();
   }
-// fluttertts(){
 
-// flutterTts.setStartHandler(() {
-//   setState(() {
-//     print("playing");
-//     ttsState = TtsState.playing;
-//   });
-// });
-// flutterTts.setCompletionHandler(() {
-//   setState(() {
-//     print("Complete");
-//     ttsState = TtsState.stopped;
-//   });
-// });
-// flutterTts.setErrorHandler((msg) {
-//   setState(() {
-//     print("error: $msg");
-//     ttsState = TtsState.stopped;
-//   });
-// });
-// }
 
 //lsiten to notification..........................................................................................
 void listenNotifications() =>
@@ -108,9 +97,6 @@ void listenNotifications() =>
 void onClickedNotification(String? payload)async{
   await flutterTts.speak(payload.toString());
 }      
-    // Navigator.of(context).push(MaterialPageRoute(
-    //   builder : (context) => addTask(payload : payload),
-    // )); // MaterialPageRoute
 
   @override
   Widget build(BuildContext context) {
@@ -412,6 +398,34 @@ void onClickedNotification(String? payload)async{
         ),
       ),
     ));
+  }
+
+//alan voice commands....................................................................................................
+
+  _handleCmd(Map<String, dynamic> res) {
+    switch (res["command"]) {
+      case "Add Task":
+        addTodo();
+        print('Opening');
+        break;
+      case "Main":
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => MyApp()));
+        print('Opening');
+        break;
+      case "HomePage":
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+        print('Opening');
+        break;
+      case "Previous":
+        Navigator.pop(context);
+        print('Opening');
+        break;
+      default:
+        print("Command not found");
+        break;
+    }
   }
 
 //get value from addTask...................................................................................
