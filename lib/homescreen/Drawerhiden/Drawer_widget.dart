@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:todoalan/homescreen/avatarProgress.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:todoalan/main.dart';
 import 'drawer_items.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DrawerWidget extends StatefulWidget {
   VoidCallback closdDrawer;
@@ -15,7 +18,10 @@ class DrawerWidget extends StatefulWidget {
 
 class _DrawerWidgetState extends State<DrawerWidget>
     with SingleTickerProviderStateMixin {
+
+  User? user = FirebaseAuth.instance.currentUser;
   final double runanim = 0.4;
+
   @override
   Widget build(BuildContext context) {
     var we = MediaQuery.of(context).size.width;
@@ -25,7 +31,7 @@ class _DrawerWidgetState extends State<DrawerWidget>
         child: Column(
       children: [
         _buildButton(context),
-        //Progerss_Avater(),
+        Progerss_Avater(),
         SizedBox(
           height: he * 0.02,
         ),
@@ -150,6 +156,11 @@ class _DrawerWidgetState extends State<DrawerWidget>
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
 
+    return  StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("Users").doc(user!.email!).snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+      
+  if (!snapshot.hasData) {   
     return Container(
       margin: EdgeInsets.only(right: we * 0.4),
       child: Column(
@@ -166,5 +177,24 @@ class _DrawerWidgetState extends State<DrawerWidget>
         ],
       ),
     );
+  } else {   
+    return Container(
+      margin: EdgeInsets.only(right: we * 0.4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            snapshot.data["name"],
+            style: TextStyle(fontFamily: 'BrandonBI', fontSize: 35, color: Colors.white),
+          ),
+          Text("about: " + 
+            snapshot.data["about"],
+            style: TextStyle(fontFamily: 'BrandonLI', fontSize: 20, color: Colors.white)
+          ),
+        ],
+      ),
+    );
+  }
+      });
   }
 }

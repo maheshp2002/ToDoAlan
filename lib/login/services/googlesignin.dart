@@ -181,7 +181,7 @@ Future<String> uploadFile(_image) async {
    : Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: isloading == true ? Colors.black : Colors.white,
-      body: isloading == true ? Center(child: Image.asset("assets/loading/loading2.gif"))
+      body: isloading == true ? Center(child: Image.asset("assets/gif/loading.gif"))
       : ListView(
       children: [
 

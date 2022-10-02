@@ -93,7 +93,7 @@ class MyApp2State extends State<MyApp2>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFd2c4b5),
+      backgroundColor: Colors.white,
       body:  Container(
         decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -104,7 +104,7 @@ class MyApp2State extends State<MyApp2>{
       child:
       Column(mainAxisAlignment: MainAxisAlignment.center,
       children: [
-      Image.asset("assets/login/login3.gif"),
+      Image.asset("assets/gif/login.gif"),
 
       SizedBox(height: 10,),
       

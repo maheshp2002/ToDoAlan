@@ -66,6 +66,9 @@ dev_dependencies:
   photo_view: ^0.14.0
   flutter_switch: ^0.3.2
 
+  #Alan voice
+  alan_voice: ^3.6.0
+
   #notification
   flutter_tts: ^3.5.3
   flutter_local_notifications: ^9.1.5
