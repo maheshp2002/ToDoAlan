@@ -39,8 +39,10 @@ class homepageState extends State<homepage> {
   String catName = "";
   int sortno = 0;
   bool isLoading = false;
+  bool isAlanActive = false;
   FlutterTts flutterTts = FlutterTts();
   User? user = FirebaseAuth.instance.currentUser;
+
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
@@ -66,9 +68,13 @@ class homepageState extends State<homepage> {
 
 //Alan button......................................................................................................
   setUpalan() {
+   setState(() {
+      isAlanActive = true;
+    });
     AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
-        buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT);
-    AlanVoice.callbacks.add((command) => _handleCmd(command.data));
+        buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
+        bottomMargin: 100);
+    AlanVoice.callbacks.add((command) => handleCmd(command.data));
   }
 
   @override
@@ -85,7 +91,8 @@ class homepageState extends State<homepage> {
        sortno = todos.length;
       });
     });
-    setUpalan();
+
+    //setUpalan();
   }
 
 
@@ -104,12 +111,22 @@ void onClickedNotification(String? payload)async{
   var he = MediaQuery.of(context).size.height;
 
   return Scaffold(
-    floatingActionButton: FloatingActionButton(onPressed: (){
+    floatingActionButton: GestureDetector(onLongPress: () {
+    if (isAlanActive == true) {
+      AlanVoice.deactivate();
+      setState(() {
+        isAlanActive = false;
+      });
+    }  else {
+      setUpalan();
+    }
+    },
+    child: FloatingActionButton(onPressed: (){
       addTodo();
     },
     backgroundColor: Color.fromARGB(255, 255, 178, 89),
     child: Icon(FontAwesomeIcons.plus, color: Colors.white, ),
-    ),
+    ),),
     appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           leading: IconButton(
@@ -400,34 +417,6 @@ void onClickedNotification(String? payload)async{
     ));
   }
 
-//alan voice commands....................................................................................................
-
-  _handleCmd(Map<String, dynamic> res) {
-    switch (res["command"]) {
-      case "Add Task":
-        addTodo();
-        print('Opening');
-        break;
-      case "Main":
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => MyApp()));
-        print('Opening');
-        break;
-      case "HomePage":
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
-        print('Opening');
-        break;
-      case "Previous":
-        Navigator.pop(context);
-        print('Opening');
-        break;
-      default:
-        print("Command not found");
-        break;
-    }
-  }
-
 //get value from addTask...................................................................................
   addTodo() async {
     int id = Random().nextInt(30);
@@ -593,6 +582,92 @@ makeListTile(Todo todo, index) {
               ],
             ));
             
+  }
+
+
+//alan voice commands....................................................................................................
+
+  handleCmd(Map<String, dynamic> res) {
+    int id = Random().nextInt(30);
+    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+    switch (res["command"]) {
+      case "Add Task":
+        addTodo();
+        print('Opening');
+        break;
+
+      case "Previous":
+        Navigator.of(context).pop();
+        print('Opening');
+        break;
+
+      case "HomePage":
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+        print('Opening');
+        break;
+
+      case "getTitle":
+        titleController.text = res["text"];
+        currentState.title = titleController.text;
+        setVisuals();
+        print('Tell me the title');
+        break;
+
+      case "Description":
+        descriptionController.text = res["text"];
+        currentState.description = descriptionController.text;
+        setVisuals();
+        print('Tell me the description');
+        break;
+      case "Hours":
+        hoursText = res["text"];
+        currentState.hours = hoursText;
+        setVisuals();        
+        print('Tell me the hours');
+        break;
+      case "Minutes":
+        minutesText = res["text"];
+        currentState.minutes = minutesText;
+        setVisuals();         
+        print('Tell me the minutes');
+        break;
+
+ //category.......................................................       
+      case "Work":
+        print('Selecting Work');
+        addTaskState(todo: t, isEdit: false).getCategory('Work');
+        break;
+      case "Personal":
+        print('Selecting Personal');
+        addTaskState(todo: t, isEdit: false).getCategory('Personal');
+        break;
+      case "Sports":
+        print('Selecting Sports');
+        addTaskState(todo: t, isEdit: false).getCategory('Sports');
+        break;
+      case "Education":
+        print('Selecting Education');
+        addTaskState(todo: t, isEdit: false).getCategory('Education');
+        break;
+      case "Medical":
+        print('Selecting Medical');
+        addTaskState(todo: t, isEdit: false).getCategory('Medical');
+        break;
+      case "Others":
+        print('Selecting Others');
+        addTaskState(todo: t, isEdit: false).getCategory('Others');
+        break;
+
+      case "Save task":
+        print('Saving task');
+        addVoiceTask();
+        break;
+
+      default:
+        print("Command not found");
+        break;
+    }
   }
 
 } 

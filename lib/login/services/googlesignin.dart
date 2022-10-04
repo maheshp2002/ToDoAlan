@@ -615,7 +615,7 @@ SizedBox(height: 80,),
               }
               }
               },
-              child: Text("Enter", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
+              child: Text("ENTER", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
               ))
 
       ],),
@@ -662,9 +662,6 @@ Future<File> fileFromImageUrl() async {
       double result = weightBMI / heightSquare;
       _result = double.parse(result.toStringAsFixed(1));
 
-      //print("########################################## + $height");
-      //print("########################################## + $weight");
-      //print("########################################## + $age");
       print("########################################## + $_result");
 
 

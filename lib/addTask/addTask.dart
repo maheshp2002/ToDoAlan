@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,8 +8,26 @@ import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:alan_voice/alan_voice.dart';
+
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
+
+class FieldsState{
+  String? title;
+  String? description;
+  String? hours;
+  String? minutes;
+
+  FieldsState(this.title, this.description, this.hours, this.minutes);
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'description': description,
+    'hours': hours,
+    'minutes': minutes
+  };
+}
 
 class addTask extends StatefulWidget {
 
@@ -17,6 +38,20 @@ class addTask extends StatefulWidget {
   @override
   addTaskState createState() => addTaskState(todo: this.todo, isEdit: this.isEdit);
 }
+
+//global variable......................................................................................
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final currentState = FieldsState("", "", "", "");
+  String hoursText = '';
+  String minutesText = '';
+
+
+  void setVisuals() {
+    var visuals = jsonEncode(currentState);
+    AlanVoice.setVisualState(visuals);
+  }
+
 class addTaskState extends State<addTask> {
   
   Todo todo;
@@ -27,11 +62,9 @@ class addTaskState extends State<addTask> {
   List<Todo> list = [];
 
 //controllerd for textfield................................................................................
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
 
   SharedPreferences? sharedPreferences; //calling instance of sharedpreference
-
+  
 
   //local variables........................................................................................
   String selectedCategory = "Work";
@@ -61,6 +94,7 @@ void initState() {
      }
       setState(() {});
     }
+    //_initSpeech();
 }
 
 //timepicker......................................................................
@@ -75,6 +109,9 @@ if (timepick != null) {
     hours = timepick.toString().substring(10, 12);
     minutes = timepick.toString().substring(13, 15);
   });
+  currentState.hours = hours;
+  currentState.minutes = minutes;
+  setVisuals();
 } 
 }
 
@@ -128,7 +165,11 @@ if (timepick != null) {
                   margin: EdgeInsets.only(top: he * 0.12, left: we * 0.1),
                   child: TextFormField(
                     onChanged: (data) {
+                      setState(() {                        
                       todo.title = data;
+                      //currentState.title = data;
+                      });
+                      //setVisuals();
                     },
                     controller: titleController,
                     decoration: InputDecoration(
@@ -153,6 +194,8 @@ if (timepick != null) {
                   child: TextFormField(
                     onChanged: (data) {
                       todo.description = data;
+                      currentState.description = data;
+                      setVisuals();
                     },                    
                     controller: descriptionController,
                     decoration: InputDecoration(
@@ -506,5 +549,141 @@ if (timepick != null) {
       ],
     );
   }
+
+
+//alan add task............................................................................................
+
+//   void _initSpeech() async {
+//     await _speechToText.initialize();
+//     setState(() {});
+//   }
+
+//   /// Each time to start a speech recognition session
+//   void _startListening() async {
+//     await _speechToText.listen(onResult: _onSpeechResult);
+//     setState(() {});
+//   }
+
+//   /// Manually stop the active speech recognition session
+//   /// Note that there are also timeouts that each platform enforces
+//   /// and the SpeechToText plugin supports setting timeouts on the
+//   /// listen method.
+//   void stopListening() async {
+
+//     await _speechToText.stop();
+
+//     if (textfield == 'minutes') {
+
+//       setState(() {
+//         _eventTime = hoursText + ":" + minutesText;
+//         hours = _eventTime.toString().substring(0, 2);
+//         minutes = _eventTime.toString().substring(3, 5);  
+//       });
+//     }
+
+//     setState(() {
+//     _speechEnabled = false;
+//     textfield = '';
+//     });
+
+//   }
+
+//   /// This is the callback that the SpeechToText plugin calls when
+//   /// the platform returns recognized words.
+//   void _onSpeechResult(SpeechRecognitionResult result) {
+//     if (textfield == 'Title'){
+//     setState(() {
+//       titleController.text = result.recognizedWords;
+//     });
+//     } else  if (textfield == 'description'){
+//     setState(() {
+//       todo.description = result.recognizedWords;
+//     });      
+//     } else if (textfield == 'hours') {
+//      hoursText = result.recognizedWords; 
+//     } else {
+//      minutesText = result.recognizedWords;
+//     }
+//   }
+  
+// //get title
+// getTitle() async{
+//   setState(() {
+//     _speechEnabled = true;
+//     textfield = 'Title';
+//   });
+//   _startListening();
+// }
+
+// //get description
+// getDescription() async{
+//   setState(() {
+//     _speechEnabled = true;
+//     textfield = 'description';
+//   });
+//   _startListening();
+// }
+
+// //get hours
+// getHours() async{
+//   setState(() {
+//     _speechEnabled = true;
+//     textfield = 'hours';
+//   });
+//   _startListening();
+
+// }
+
+// //get minutes
+// getMinutes() async{
+//   setState(() {
+//     _speechEnabled = true;
+//     textfield = 'minutes';
+//   });
+//   _startListening();
+// }
+
+//get category
+getCategory(String cat) async{
+  setState(() {
+    selectedCategory = cat;
+    todo.category = cat;
+  });
 }
 
+
+}
+//add task via  voice
+
+addVoiceTask(){
+
+SharedPreferences? prefs;
+List todos = [];
+int id = Random().nextInt(30);
+List<int> date = [1, 2, 3, 4, 5, 6, 7];
+User? user = FirebaseAuth.instance.currentUser;
+Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+
+//setting scheduled notification
+                          
+  NotificationApi.showScheduledNotification(
+  id: t.id,
+  title: currentState.title,
+  body: currentState.description,
+  payload: currentState.description,
+  hh:  int.parse(hoursText),
+  mm: int.parse(minutesText),
+  ss: int.parse("00"),
+  date: date,
+  scheduledDate: DateTime.now().add(Duration(seconds: 10))
+  );
+
+  List items = todos.map((e) => e.toJson()).toList();
+  prefs!.setString(user!.email!, jsonEncode(items));
+
+  titleController.clear();
+  descriptionController.clear();
+
+}
+
+      

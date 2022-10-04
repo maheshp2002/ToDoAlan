@@ -97,9 +97,9 @@ class MyApp2State extends State<MyApp2>{
       body:  Container(
         decoration: const BoxDecoration(
               gradient: LinearGradient(
-               colors: [Color(0xFFd2c4b5),Color(0xFFd2c4b5),Color(0xFFdbcab5), Color(0xFFd7c6b4)],
-              begin: Alignment.topLeft,
-               end: Alignment.bottomRight,
+               colors: [Color(0xFFfefbe5),Color(0xFFfefbe5),Color.fromARGB(255, 253, 225, 195), Color(0xFFfFe5ca)],
+              begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
           )),
       child:
       Column(mainAxisAlignment: MainAxisAlignment.center,
@@ -108,7 +108,7 @@ class MyApp2State extends State<MyApp2>{
 
       SizedBox(height: 10,),
       
-      Text("Please login..!", style: TextStyle(fontSize: 25, fontFamily: 'BrandonBI', color: Colors.grey),),
+      Text("Hey there..!", style: TextStyle(fontSize: 25, fontFamily: 'BrandonBI', color: Colors.grey),),
 
       SizedBox(height: 10,),
 
