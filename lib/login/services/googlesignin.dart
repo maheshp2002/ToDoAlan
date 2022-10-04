@@ -225,7 +225,7 @@ SizedBox(height: 80,),
             )),
             SizedBox(height: 10,),
 
-            Text("Tap this image to change profile pic...!", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.blueGrey, fontSize: 10),)
+            Text("Tap this image to change your profile picture", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.blueGrey, fontSize: 10),)
       ]),
 
 
@@ -264,7 +264,7 @@ SizedBox(height: 80,),
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       suffixIcon: Icon(FontAwesomeIcons.user, color: Color.fromARGB(255, 255, 178, 89)),
-                      hintText: "Enter your name..!",
+                      hintText: "Name",
                       hintStyle: TextStyle(
                         fontSize: 18,
                         fontFamily: 'BrandonLI',
@@ -304,7 +304,7 @@ SizedBox(height: 80,),
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       suffixIcon: Icon(FontAwesomeIcons.penToSquare, color: Color.fromARGB(255, 255, 178, 89)),
-                      hintText: "Enter about..!",
+                      hintText: "Bio",
                       hintStyle: TextStyle(
                         fontSize: 18,
                         fontFamily: 'BrandonLI',
@@ -344,7 +344,7 @@ SizedBox(height: 80,),
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       suffixIcon: Icon(FontAwesomeIcons.arrowUp91, color: Color.fromARGB(255, 255, 178, 89)),
-                      hintText: "Enter your age..!",
+                      hintText: "Age",
                       hintStyle: TextStyle(
                         fontSize: 18,
                         fontFamily: 'BrandonLI',
@@ -388,7 +388,7 @@ SizedBox(height: 80,),
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       suffixIcon: Icon(FontAwesomeIcons.person, color: Color.fromARGB(255, 255, 178, 89)),
-                      hintText: "Height..!",
+                      hintText: "Height (cm)",
                       hintStyle: TextStyle(
                         fontSize: 18,
                         fontFamily: 'BrandonLI',
@@ -428,7 +428,7 @@ SizedBox(height: 80,),
                       focusedBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       suffixIcon: Icon(FontAwesomeIcons.weightScale, color: Color.fromARGB(255, 255, 178, 89)),
-                      hintText: "Weight..!",
+                      hintText: "Weight (kg)",
                       hintStyle: TextStyle(
                         fontSize: 18,
                         fontFamily: 'BrandonLI',
@@ -446,7 +446,7 @@ SizedBox(height: 80,),
 
       Row(mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text("Sujjest task", style: TextStyle(fontFamily: 'BrandonBI', color: Colors.blueGrey, fontSize: 20),),
+        Text("Suggest task", style: TextStyle(fontFamily: 'BrandonBI', color: Colors.blueGrey, fontSize: 20),),
 
         SizedBox(width: 10,),
 
@@ -489,7 +489,7 @@ SizedBox(height: 80,),
               && heightController.text.trim().isEmpty && weightController.text.trim().isEmpty){
 
                   Fluttertoast.showToast(  
-                  msg: 'Please make sure all fields are filled ..!',  
+                  msg: 'Please make sure all fields are filled',  
                   toastLength: Toast.LENGTH_LONG,  
                   gravity: ToastGravity.BOTTOM,  
                   backgroundColor: Color.fromARGB(255, 248, 17, 0),  
@@ -500,7 +500,7 @@ SizedBox(height: 80,),
               else if (unameController.text.trim().isEmpty)
               { 
                 Fluttertoast.showToast(  
-                msg: 'Please enter your name..!',  
+                msg: 'Please enter your name',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
@@ -510,7 +510,7 @@ SizedBox(height: 80,),
               else if (aboutController.text.trim().isEmpty)
               { 
                 Fluttertoast.showToast(  
-                msg: 'Please enter about..!',  
+                msg: 'Please enter about',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
@@ -521,7 +521,7 @@ SizedBox(height: 80,),
               { 
 
                 Fluttertoast.showToast(  
-                msg: 'Please enter your age..!',  
+                msg: 'Please enter your age',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
@@ -533,7 +533,7 @@ SizedBox(height: 80,),
               else if (heightController.text.trim().isEmpty)
               { 
                 Fluttertoast.showToast(  
-                msg: 'Please enter your height..!',  
+                msg: 'Please enter your height',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
@@ -543,32 +543,32 @@ SizedBox(height: 80,),
               else if (weightController.text.trim().isEmpty)
               { 
                 Fluttertoast.showToast(  
-                msg: 'Please enter your weight..!',  
+                msg: 'Please enter your weight',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
                 textColor: Colors.white); 
                 
               } else{
-                if (int.parse(weightController.text.trim()) <= 10 ||  int.parse(weightController.text.trim()) > 100){
+                if (int.parse(weightController.text.trim()) <= 10 ||  int.parse(weightController.text.trim()) > 130){
                 Fluttertoast.showToast(  
-                msg: 'weight should be between 10 and 100..!',  
+                msg: 'Weight should be between 10 and 130kg',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
                 textColor: Colors.white);     
 
-              } else if (int.parse(heightController.text.trim()) <= 100 ||  int.parse(heightController.text.trim()) > 200){
+              } else if (int.parse(heightController.text.trim()) <= 50 ||  int.parse(heightController.text.trim()) > 250){
                 Fluttertoast.showToast(  
-                msg: 'Height should be between 100 and 200..!',  
+                msg: 'Height should be between 50 and 250cm',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
                 textColor: Colors.white);     
 
-              } else if (int.parse(ageController.text.trim()) < 10 ||  int.parse(ageController.text.trim()) > 100){
+              } else if (int.parse(ageController.text.trim()) < 10 ||  int.parse(ageController.text.trim()) > 120){
                 Fluttertoast.showToast(  
-                msg: 'Age should be between 10 and 100..!',  
+                msg: 'Age should be between 10 and 120',  
                 toastLength: Toast.LENGTH_LONG,  
                 gravity: ToastGravity.BOTTOM,  
                 backgroundColor: Colors.red,  
