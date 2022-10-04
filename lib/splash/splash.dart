@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
+import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:todoalan/main.dart';
 
 
@@ -9,15 +11,23 @@ class Splash extends StatefulWidget {
 }
 
   class _SplashState extends State<Splash>{
+    bool? isValidation; 
+
   @override
   void initState(){
   super.initState();
+  Future.delayed(Duration(milliseconds: 100), () async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isValidation = await prefs.getBool("validation") ?? false;
+  });
   _navigatetoHome();
   }
 
   _navigatetoHome()async{
     await Future.delayed(const Duration(milliseconds: 3000), () {});
     getUserEmail == "notSigned" ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp2()))
+    : isValidation == false ? 
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Userdetails()))
     : Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
   }
 

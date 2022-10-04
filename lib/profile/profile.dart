@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:todoalan/profile/deleteAccount.dart';
 
 class profileUpdates extends StatefulWidget {
   profileUpdates({Key? key}) : super(key: key);
@@ -26,6 +26,7 @@ class _profileUpdatesState extends State<profileUpdates> {
   TextEditingController heightController =  TextEditingController();
   TextEditingController weightController =  TextEditingController();
   User? user = FirebaseAuth.instance.currentUser;
+  late String image;
 
   
 //..........................................................................................
@@ -59,7 +60,6 @@ Future<String> uploadFile(_image) async {
 //..........................................................................................
 // Image Picker
   File _image = File(''); // Used only if you need a single picture
-  late bool? Validation;
   bool isloading = false;
   final collectionReference = FirebaseFirestore.instance;
 
@@ -69,25 +69,6 @@ Future<String> uploadFile(_image) async {
     fileFromImageUrl();
   }
   
-
-
-
-  @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-
-    try{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {      
-    Validation = prefs.getBool('validation');
-    });
-    } catch(e){
-    setState(() {      
-    Validation = false;
-    });
-    }
-
-  }
   
   Future getImage(bool gallery) async {
     ImagePicker picker = ImagePicker();
@@ -119,15 +100,27 @@ Future<String> uploadFile(_image) async {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: isloading ? Colors.black : Theme.of(context).scaffoldBackgroundColor,
+        leading: IconButton(
+        onPressed: () => Navigator.of(context).pop(),
+        icon: Icon(FontAwesomeIcons.arrowLeft, color: Theme.of(context).hintColor,)
+        ),
+      ),
       resizeToAvoidBottomInset: true,
-      backgroundColor: isloading == true ? Colors.black : Colors.white,
-      body: isloading == true ? Center(child: Image.asset("assets/gif/loading.gif"))
+      backgroundColor: isloading == true ? Colors.black : Theme.of(context).scaffoldBackgroundColor,
+      body: isloading == true ? Center(child: Image.asset("assets/gif/loading1.gif"))
       : StreamBuilder(
       stream: FirebaseFirestore.instance.collection("Users").doc(user!.email!).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
               
       if (!snapshot.hasData) {  
-        return Text("nothing is here");
+        return Center(
+        child:
+        Image.asset('assets/nothing.png', height: 400, width: 400,)
+        );
+       
       }
       else { 
       return ListView(
@@ -146,10 +139,10 @@ SizedBox(height: 80,),
                 //radius: 55,
               height: 150.0,
                 width: 150.0,
-                color: Colors.grey[200],
-                child: _image != null
+                color: Theme.of(context).scaffoldBackgroundColor,
+                child: _image != File("")
                     ? ClipRRect(
-                        //borderRadius: BorderRadius.circular(50),
+                        borderRadius: BorderRadius.circular(20),
                         child: Image.file(
                           _image,
                           width: 150,
@@ -157,16 +150,18 @@ SizedBox(height: 80,),
                           fit: BoxFit.fill
                         ),
                       )
-                    : Container(
+                : ClipRRect(borderRadius: BorderRadius.circular(20),
+                        child: Container(
                         decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(50)),
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: BorderRadius.circular(50)),
                         width: 100,
                         height: 100,
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Colors.grey[800],
-                        ),
+                        child: Image.network(
+                          snapshot.data['img'],
+                          width: 100,
+                          height: 100,
+                        )),
                       ),
               ),
             
@@ -262,7 +257,6 @@ SizedBox(height: 80,),
               SizedBox(width:20),
 
               Expanded(child: 
-              Expanded(child: 
                 TextFormField(
                 cursorColor: Theme.of(context).hintColor,
                 controller: heightController,
@@ -283,7 +277,7 @@ SizedBox(height: 80,),
                   border: UnderlineInputBorder(),
                 ),
               ),
-              ),), 
+              ), 
 
               SizedBox(width: 10,),
 
@@ -314,11 +308,13 @@ SizedBox(height: 80,),
 
       ]),
 
-      SizedBox(height: 20,),
+      SizedBox(height: 30,),
 
+      Row(mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         SizedBox(
         height: 44.0,
-        width: 100,
+        width: 120,
         child:
           ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -425,13 +421,43 @@ SizedBox(height: 80,),
               isloading = false;
               }); 
 
-             // await Navigator.pushReplacement(context, 
-             // MaterialPageRoute(builder: (BuildContext context) => HidenDrawer(animationtime: 0.8,),));               
+              Navigator.of(context).pop();  
+              Fluttertoast.showToast(  
+              msg: 'Profile updates..!',  
+              toastLength: Toast.LENGTH_LONG,  
+              gravity: ToastGravity.BOTTOM,  
+              backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+              textColor: Colors.white  
+              ); 
+
+              unameController.clear();
+              aboutController.clear();
+              ageController.clear();
+              heightController.clear();
+              weightController.clear();             
               
           },
           child: Text("UPDATE", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
-          ))
+          )),
 
+        SizedBox(width: 20,),
+
+        SizedBox(
+        height: 44.0,
+        width: 120,
+        child:
+          ElevatedButton(
+          style: ElevatedButton.styleFrom(
+          primary: Color.fromARGB(255, 255, 89, 89)
+          ),
+          onPressed: () async{
+            await Navigator.push(
+              context,  MaterialPageRoute(
+              builder: (context) => deleteAccount(email: user!.email!, name: snapshot.data['name'])));
+          },
+          child: Text("DELETE", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
+          ))
+        ],),
       ],);
       }}),
     );
@@ -444,7 +470,20 @@ SizedBox(height: 80,),
   }
 }
 Future<File> fileFromImageUrl() async {
-    final response = await http.get(Uri.parse('https://firebasestorage.googleapis.com/v0/b/macsapp-f2a0f.appspot.com/o/App%20file%2Fdefault%2Fdownload.png?alt=media&token=ae634acf-dc30-4228-a071-587d9007773e'));
+    try{
+    await collectionReference.collection("Users").doc(user!.email!).get().then((snapshot) {
+    image = snapshot.get('img');
+     });    
+    } catch(e){
+      image = 'https://firebasestorage.googleapis.com/v0/b/macsapp-f2a0f.appspot.com/o/App%20file%2Fdefault%2Fdownload.png?alt=media&token=ae634acf-dc30-4228-a071-587d9007773e';
+    }
+    
+    if ( image == "")
+    {
+     image = 'https://firebasestorage.googleapis.com/v0/b/macsapp-f2a0f.appspot.com/o/App%20file%2Fdefault%2Fdownload.png?alt=media&token=ae634acf-dc30-4228-a071-587d9007773e';
+    }
+
+    final response = await http.get(Uri.parse(image));
 
     final documentDirectory = await getApplicationDocumentsDirectory();
     setState(() {
@@ -456,5 +495,4 @@ Future<File> fileFromImageUrl() async {
 
     return _image;
   }
-
 }

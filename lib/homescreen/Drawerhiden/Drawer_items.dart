@@ -9,12 +9,14 @@ class DrawerItem {
 }
 
 class DrawerItems {
-  static final categorise =
+  static final backup =
       DrawerItem(title: "Backup", icon: FontAwesomeIcons.cloudArrowUp);
-  static final analytics =
+  static final notification =
       DrawerItem(title: "Notification  sound", icon: Icons.notifications_paused,);
-  static final about =
+  static final profile =
+      DrawerItem(title: "Profile", icon: Icons.person);
+  static final logout =
       DrawerItem(title: "Logout", icon: Icons.logout);
 
-  static final List<DrawerItem> all = [categorise, analytics,about];
+  static final List<DrawerItem> all = [backup, notification, profile, logout];
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
@@ -103,6 +104,7 @@ void listenNotifications() =>
 
 void onClickedNotification(String? payload)async{
   await flutterTts.speak(payload.toString());
+  await flutterTts.awaitSpeakCompletion(true);
 }      
 
   @override
@@ -306,7 +308,7 @@ void onClickedNotification(String? payload)async{
               child: makeListTile(todos[index], index)
               )
 
-              : Text("")
+              : Text("", style: TextStyle(fontSize: 0.1))
 
               : Slidable(
               endActionPane: ActionPane(
@@ -419,7 +421,7 @@ void onClickedNotification(String? payload)async{
 
 //get value from addTask...................................................................................
   addTodo() async {
-    int id = Random().nextInt(30);
+    int id = Random().nextInt(2147483637);
     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
     Todo returnTodo = await Navigator.push(
         context, MaterialPageRoute(builder: (context) => addTask(todo: t, isEdit: false,)));
@@ -530,8 +532,8 @@ makeListTile(Todo todo, index) {
         context: context,
         builder: (ctx) => AlertDialog(
               title: Text(todo.title,textAlign: TextAlign.left,
-              style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI')),
-              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time, textAlign: TextAlign.left,
+              style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
+              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time + "\nCategory: " + todo.category, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 
@@ -574,8 +576,16 @@ makeListTile(Todo todo, index) {
                         debugPrint(e.toString());
                       }
                      
+                      Fluttertoast.showToast(  
+                      msg: 'Task deleted..!',  
+                      toastLength: Toast.LENGTH_LONG,  
+                      gravity: ToastGravity.BOTTOM,  
+                      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                      textColor: Colors.white);                               
                       Navigator.pop(ctx);
                       saveTodo();
+
+
                     },
                     child: Text("Yes",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
@@ -588,7 +598,7 @@ makeListTile(Todo todo, index) {
 //alan voice commands....................................................................................................
 
   handleCmd(Map<String, dynamic> res) {
-    int id = Random().nextInt(30);
+    int id = Random().nextInt(2147483637);
     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
     switch (res["command"]) {
       case "Add Task":

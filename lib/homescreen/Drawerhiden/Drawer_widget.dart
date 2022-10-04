@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:todoalan/addTask/backupTask.dart';
 import 'package:todoalan/homescreen/avatarProgress.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:todoalan/main.dart';
+import 'package:todoalan/profile/profile.dart';
 import 'drawer_items.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -65,7 +67,23 @@ class _DrawerWidgetState extends State<DrawerWidget>
                       style: const TextStyle(color: Colors.white, fontFamily: 'BrandonLI'),
                     ),
                     onTap: () async{
-                      await _logout();
+                      if (item.title == 'Logout') {
+                        await _logout();
+                      } else if (item.title == 'Profile') {
+                        Navigator.push(context, MaterialPageRoute(builder: (context)
+                        => profileUpdates()));
+                      } else if (item.title == 'Backup'){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)
+                        => backupTask()));
+                      } else {
+                        Fluttertoast.showToast(  
+                        msg: 'Maintenance',  
+                        toastLength: Toast.LENGTH_LONG,  
+                        gravity: ToastGravity.BOTTOM,  
+                        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                        textColor: Colors.white);                         
+                      }
+                
                     },
                   ))
               .toList(),

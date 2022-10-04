@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
@@ -40,8 +41,11 @@ class addTask extends StatefulWidget {
 }
 
 //global variable......................................................................................
+
+  //controllerd for textfield
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+
   final currentState = FieldsState("", "", "", "");
   String hoursText = '';
   String minutesText = '';
@@ -61,8 +65,6 @@ class addTaskState extends State<addTask> {
   SelectedColor selected = SelectedColor.Work;
   List<Todo> list = [];
 
-//controllerd for textfield................................................................................
-
   SharedPreferences? sharedPreferences; //calling instance of sharedpreference
   
 
@@ -70,11 +72,13 @@ class addTaskState extends State<addTask> {
   String selectedCategory = "Work";
   bool isPickerSelected = false;
   static DateTime _eventdDate = DateTime.now();
+  User? user = FirebaseAuth.instance.currentUser;
   static var now =  TimeOfDay.fromDateTime(DateTime.parse(_eventdDate.toString()));
   String hours = now.toString().substring(10, 15);
   String minutes = now.toString().substring(10, 15);
   String _eventTime = now.toString().substring(10, 15);
   List<int> date = [1, 2, 3, 4, 5, 6, 7];
+
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 
@@ -84,17 +88,17 @@ void initState() {
   super.initState();
   //check if is editing
     if (todo != null) {
-      titleController.text = todo.title;
-      descriptionController.text = todo.description;
+      titleController.text = currentState.title = todo.title;
+      descriptionController.text = currentState.description = todo.description;
      if(isEdit) {
      _eventTime = todo.time;
-     hours = todo.time.toString().substring(0, 2);
-     minutes = todo.time.toString().substring(3, 5);   
+     hours = currentState.hours = todo.time.toString().substring(0, 2);
+     minutes = currentState.minutes = todo.time.toString().substring(3, 5);   
      isPickerSelected = true;
      }
       setState(() {});
+      setVisuals();
     }
-    //_initSpeech();
 }
 
 //timepicker......................................................................
@@ -165,11 +169,9 @@ if (timepick != null) {
                   margin: EdgeInsets.only(top: he * 0.12, left: we * 0.1),
                   child: TextFormField(
                     onChanged: (data) {
-                      setState(() {                        
                       todo.title = data;
-                      //currentState.title = data;
-                      });
-                      //setVisuals();
+                      currentState.title = data;
+                      setVisuals();
                     },
                     controller: titleController,
                     decoration: InputDecoration(
@@ -289,6 +291,8 @@ if (timepick != null) {
                 textColor: Colors.white); 
 
               } else {
+                List<String> docids = [todo.id.toString()];
+                
                 setState(() {
                   todo.category = selectedCategory;
                   todo.time = _eventTime;
@@ -300,7 +304,57 @@ if (timepick != null) {
                     await flutterLocalNotificationsPlugin.cancel(todo.id);
                   } catch(e) {
                     debugPrint(e.toString());
-                  }                
+                  }   
+
+                  //for backup
+                    try{
+                      await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                      .collection("backup").doc(todo.id.toString()).update({
+                        'title': todo.title,
+                        'description': todo.description,
+                        'time': _eventTime,
+                        'category': selectedCategory,
+                        'date': date.toString(),
+                        'id': todo.id,
+                        'isSelected': false
+                      });
+                    }catch(e) {
+                      Fluttertoast.showToast(  
+                      msg: 'Unable to backup data, no network connection..!',  
+                      toastLength: Toast.LENGTH_LONG,  
+                      gravity: ToastGravity.BOTTOM,  
+                      backgroundColor: Colors.red,  
+                      textColor: Colors.white);   
+                    }                               
+                } else {
+                  try{
+                    await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                    .collection("backup").doc(todo.id.toString()).set({
+                      'title': todo.title,
+                      'description': todo.description,
+                      'time': _eventTime,
+                      'category': selectedCategory,
+                      'date': date.toString(),
+                      'id': todo.id,
+                      'isSelected': false
+                    });
+                  }catch(e) {
+                    Fluttertoast.showToast(  
+                    msg: 'Unable to backup data, no network connection..!',  
+                    toastLength: Toast.LENGTH_LONG,  
+                    gravity: ToastGravity.BOTTOM,  
+                    backgroundColor: Colors.red, 
+                    textColor: Colors.white);   
+                  }  
+                  // //for id
+                  //   try{
+                  //     await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                  //     .collection("ID").doc("ID").set({
+                  //       'id': docids,
+                  //     });
+                  //   }catch(e) {
+                  //     debugPrint( "######################################################"+e.toString());
+                  //   }                                    
                 }
 
                 //setting scheduled notification
@@ -316,6 +370,13 @@ if (timepick != null) {
                   date: date,
                   scheduledDate: DateTime.now().add(Duration(seconds: 10))
                 );
+              
+                      Fluttertoast.showToast(  
+                      msg: 'Task added..!',  
+                      toastLength: Toast.LENGTH_LONG,  
+                      gravity: ToastGravity.BOTTOM,  
+                      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                      textColor: Colors.white);                               
 
                 Navigator.pop(context, todo);
 
@@ -553,96 +614,6 @@ if (timepick != null) {
 
 //alan add task............................................................................................
 
-//   void _initSpeech() async {
-//     await _speechToText.initialize();
-//     setState(() {});
-//   }
-
-//   /// Each time to start a speech recognition session
-//   void _startListening() async {
-//     await _speechToText.listen(onResult: _onSpeechResult);
-//     setState(() {});
-//   }
-
-//   /// Manually stop the active speech recognition session
-//   /// Note that there are also timeouts that each platform enforces
-//   /// and the SpeechToText plugin supports setting timeouts on the
-//   /// listen method.
-//   void stopListening() async {
-
-//     await _speechToText.stop();
-
-//     if (textfield == 'minutes') {
-
-//       setState(() {
-//         _eventTime = hoursText + ":" + minutesText;
-//         hours = _eventTime.toString().substring(0, 2);
-//         minutes = _eventTime.toString().substring(3, 5);  
-//       });
-//     }
-
-//     setState(() {
-//     _speechEnabled = false;
-//     textfield = '';
-//     });
-
-//   }
-
-//   /// This is the callback that the SpeechToText plugin calls when
-//   /// the platform returns recognized words.
-//   void _onSpeechResult(SpeechRecognitionResult result) {
-//     if (textfield == 'Title'){
-//     setState(() {
-//       titleController.text = result.recognizedWords;
-//     });
-//     } else  if (textfield == 'description'){
-//     setState(() {
-//       todo.description = result.recognizedWords;
-//     });      
-//     } else if (textfield == 'hours') {
-//      hoursText = result.recognizedWords; 
-//     } else {
-//      minutesText = result.recognizedWords;
-//     }
-//   }
-  
-// //get title
-// getTitle() async{
-//   setState(() {
-//     _speechEnabled = true;
-//     textfield = 'Title';
-//   });
-//   _startListening();
-// }
-
-// //get description
-// getDescription() async{
-//   setState(() {
-//     _speechEnabled = true;
-//     textfield = 'description';
-//   });
-//   _startListening();
-// }
-
-// //get hours
-// getHours() async{
-//   setState(() {
-//     _speechEnabled = true;
-//     textfield = 'hours';
-//   });
-//   _startListening();
-
-// }
-
-// //get minutes
-// getMinutes() async{
-//   setState(() {
-//     _speechEnabled = true;
-//     textfield = 'minutes';
-//   });
-//   _startListening();
-// }
-
 //get category
 getCategory(String cat) async{
   setState(() {
@@ -659,7 +630,7 @@ addVoiceTask(){
 
 SharedPreferences? prefs;
 List todos = [];
-int id = Random().nextInt(30);
+int id = Random().nextInt(2147483637);
 List<int> date = [1, 2, 3, 4, 5, 6, 7];
 User? user = FirebaseAuth.instance.currentUser;
 Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
@@ -677,7 +648,7 @@ Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', 
   date: date,
   scheduledDate: DateTime.now().add(Duration(seconds: 10))
   );
-
+ // todos.add(t);
   List items = todos.map((e) => e.toJson()).toList();
   prefs!.setString(user!.email!, jsonEncode(items));
 
@@ -686,4 +657,4 @@ Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', 
 
 }
 
-      
+

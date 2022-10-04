@@ -65,10 +65,10 @@ dev_dependencies:
   image_picker: ^0.8.5+3
   photo_view: ^0.14.0
   flutter_switch: ^0.3.2
+  url_launcher: ^6.1.6
 
   #Alan voice
   alan_voice: ^3.6.0
-  speech_to_text: ^4.2.0
 
   #notification
   flutter_tts: ^3.5.3

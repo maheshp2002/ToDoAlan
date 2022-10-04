@@ -476,7 +476,7 @@ SizedBox(height: 80,),
 
         SizedBox(
         height: 44.0,
-        width: 100,
+        width: 120,
         child:
               ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -672,7 +672,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6, 7];
 
       setState(() {
-        t.id = Random().nextInt(30);
+        t.id = Random().nextInt(2147483637);
         t.title = "Sleep";
         t.description = "Wake up during 5am";
         t.time = "21:30";
@@ -704,7 +704,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6, 7];
 
       setState(() {
-        t.id = Random().nextInt(30);
+        t.id = Random().nextInt(2147483637);
         t.title = "Sleep";
         t.description = "Wake up during 6am";
         t.time = "21:00";
@@ -735,7 +735,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6, 7];
 
       setState(() {
-        t.id = Random().nextInt(30);
+        t.id = Random().nextInt(2147483637);
         t.title = "Sleep";
         t.description = "Wake up during 7am";
         t.time = "20:00";
@@ -773,7 +773,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:00";
@@ -801,7 +801,7 @@ Future<File> fileFromImageUrl() async {
       //await.................................................
      // Future.delayed(Duration(seconds: 1), (){
       setState(() {
-        t2.id = Random().nextInt(30) + 1;
+        t2.id = Random().nextInt(2147483637) ;
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1 hour";
         t2.time = "17:00";
@@ -827,7 +827,7 @@ Future<File> fileFromImageUrl() async {
 
       List items = todos.map((e) => e.toJson()).toList();
       prefs!.setString(user!.email!, jsonEncode(items));
-       //print("########################################## + 1 1");
+       //print("##########################################  1");
 
       //});
 
@@ -835,7 +835,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1:30 hours";
         t1.time = "06:00";
@@ -864,7 +864,7 @@ Future<File> fileFromImageUrl() async {
       //await.................................................
      // Future.delayed(Duration(seconds: 1), (){
       setState(() {
-        t2.id = Random().nextInt(30) + 1;
+        t2.id = Random().nextInt(2147483637) ;
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1:30 hour";
         t2.time = "17:00";
@@ -890,7 +890,7 @@ Future<File> fileFromImageUrl() async {
 
       List items = todos.map((e) => e.toJson()).toList();
       prefs!.setString(user!.email!, jsonEncode(items));
-       //print("########################################## + 1 2");
+       //print("##########################################  2");
 
      // });
 
@@ -898,7 +898,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6, 7];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 2 hours";
         t1.time = "06:00";
@@ -925,7 +925,7 @@ Future<File> fileFromImageUrl() async {
 
       //await.................................................
       setState(() {
-        t2.id = Random().nextInt(30) + 1;
+        t2.id = Random().nextInt(2147483637) ;
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1:30 hour";
         t2.time = "17:00";
@@ -951,10 +951,10 @@ Future<File> fileFromImageUrl() async {
 
       List items = todos.map((e) => e.toJson()).toList();
       prefs!.setString(user!.email!, jsonEncode(items));
-       //print("########################################## + 1 3");
+       //print("##########################################  3");
 
       }
-            //print("########################################## + 1");
+            //print("########################################## ");
 
     } 
 
@@ -965,7 +965,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:30";
@@ -993,7 +993,7 @@ Future<File> fileFromImageUrl() async {
 //await.................................................
 
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
@@ -1022,7 +1022,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:30";
@@ -1049,7 +1049,7 @@ Future<File> fileFromImageUrl() async {
 
 //await.................................................
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
@@ -1078,7 +1078,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5, 6];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1:30 hours";
         t1.time = "06:30";
@@ -1106,7 +1106,7 @@ Future<File> fileFromImageUrl() async {
 //await.................................................
       //Future.delayed(Duration(seconds: 1), () {
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1 hour";
         t2.time = "17:00";
@@ -1144,7 +1144,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
@@ -1171,7 +1171,7 @@ Future<File> fileFromImageUrl() async {
 
 //await.................................................
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 15 minutes";
         t2.time = "17:00";
@@ -1200,7 +1200,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
@@ -1227,7 +1227,7 @@ Future<File> fileFromImageUrl() async {
 
 //await.................................................
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 15 minutes";
         t2.time = "17:00";
@@ -1256,7 +1256,7 @@ Future<File> fileFromImageUrl() async {
       List<int> date = [1, 2, 3, 4, 5];
 
       setState(() {
-        t1.id = Random().nextInt(30);
+        t1.id = Random().nextInt(2147483637);
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
@@ -1283,7 +1283,7 @@ Future<File> fileFromImageUrl() async {
 
 //await.................................................
       setState(() {
-        t2.id = Random().nextInt(30);
+        t2.id = Random().nextInt(2147483637);
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
