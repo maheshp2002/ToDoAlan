@@ -11,6 +11,7 @@ import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:todoalan/addTask/backupTask.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
@@ -18,9 +19,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alan_voice/alan_voice.dart';
+import 'package:todoalan/profile/profile.dart';
+import 'package:todoalan/themeSelect/themeSelect.dart';
 
 //global variables................................................................................................
 late bool? isDark;
+late bool? isNotificationSound;
+late int? NavBartheme;
+late List<Color> navColor;
 
 class homepage extends StatefulWidget {
 
@@ -42,6 +48,7 @@ class homepageState extends State<homepage> {
   bool isLoading = false;
   bool isAlanActive = false;
   FlutterTts flutterTts = FlutterTts();
+  bool isNotificationCalled = true;
   User? user = FirebaseAuth.instance.currentUser;
 
 
@@ -102,9 +109,18 @@ void listenNotifications() =>
             NotificationApi.onNotifications.stream.listen(onClickedNotification);
 
 
-void onClickedNotification(String? payload)async{
-  await flutterTts.speak(payload.toString());
-  await flutterTts.awaitSpeakCompletion(true);
+void onClickedNotification(String? payload) async{
+  isNotificationSound == true 
+  ? isNotificationCalled 
+  ? await flutterTts.speak(payload.toString()) 
+  : debugPrint("################################ false")
+  : debugPrint("################################disabled");
+  
+  await flutterTts.stop();
+  setState(() {
+    isNotificationCalled = false;
+  });
+
 }      
 
   @override
@@ -597,7 +613,7 @@ makeListTile(Todo todo, index) {
 
 //alan voice commands....................................................................................................
 
-  handleCmd(Map<String, dynamic> res) {
+  handleCmd(Map<String, dynamic> res) async{
     int id = Random().nextInt(2147483637);
     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
     switch (res["command"]) {
@@ -608,7 +624,12 @@ makeListTile(Todo todo, index) {
 
       case "Previous":
         Navigator.of(context).pop();
-        print('Opening');
+        print('previous');
+        break;
+
+      case "Go back":
+        Navigator.of(context).pop();
+        print('Go back');
         break;
 
       case "HomePage":
@@ -617,6 +638,44 @@ makeListTile(Todo todo, index) {
         print('Opening');
         break;
 
+      case "Open profile":
+        print('Open profile');
+        Navigator.push(
+          context, MaterialPageRoute(builder: (context) => profileUpdates()));;
+        break;
+
+      case "Open theme":
+        print('Open theme');
+        Navigator.push(
+          context, MaterialPageRoute(builder: (context) => themeSelect()));
+        break;
+
+      case "Open backup":
+        print('Open backup');
+        Navigator.push(
+          context, MaterialPageRoute(builder: (context) => backupTask()));;
+        break;
+
+      case "Disable notification sound":
+        print('Disable notification sound');
+        SharedPreferences prefs = await SharedPreferences.getInstance(); 
+        await prefs.setBool('isNotificationSound', false);
+        setState(() {
+          isNotificationSound = false;
+        });
+        //print("######################################$isNotificationSound");
+        break;
+
+      case "Enable notification sound":
+        print('Enable notification sound');
+        SharedPreferences prefs = await SharedPreferences.getInstance(); 
+        await prefs.setBool('isNotificationSound', true);
+        setState(() {
+          isNotificationSound = true;
+        });           
+        //print("######################################$isNotificationSound");
+        break;        
+      //add task.......................................................
       case "getTitle":
         titleController.text = res["text"];
         currentState.title = titleController.text;
@@ -630,12 +689,14 @@ makeListTile(Todo todo, index) {
         setVisuals();
         print('Tell me the description');
         break;
+
       case "Hours":
         hoursText = res["text"];
         currentState.hours = hoursText;
         setVisuals();        
         print('Tell me the hours');
         break;
+
       case "Minutes":
         minutesText = res["text"];
         currentState.minutes = minutesText;
@@ -648,22 +709,27 @@ makeListTile(Todo todo, index) {
         print('Selecting Work');
         addTaskState(todo: t, isEdit: false).getCategory('Work');
         break;
+
       case "Personal":
         print('Selecting Personal');
         addTaskState(todo: t, isEdit: false).getCategory('Personal');
         break;
+
       case "Sports":
         print('Selecting Sports');
         addTaskState(todo: t, isEdit: false).getCategory('Sports');
         break;
+
       case "Education":
         print('Selecting Education');
         addTaskState(todo: t, isEdit: false).getCategory('Education');
         break;
+
       case "Medical":
         print('Selecting Medical');
         addTaskState(todo: t, isEdit: false).getCategory('Medical');
         break;
+
       case "Others":
         print('Selecting Others');
         addTaskState(todo: t, isEdit: false).getCategory('Others');

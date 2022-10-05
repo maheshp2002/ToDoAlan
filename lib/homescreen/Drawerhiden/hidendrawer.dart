@@ -47,15 +47,15 @@ class _HidenDrawerState extends State<HidenDrawer> {
 
   @override
   Widget build(BuildContext context) => Container(
-  decoration: const BoxDecoration(
+  decoration: BoxDecoration(
   gradient:  LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [Color(0xFFED7B8A), Color(0xFF04123F)])),
+  //colors: [Color(0xFFED7B8A), Color(0xFF04123F)]
+  colors: navColor
+  )),
   child: Scaffold(
       backgroundColor: Colors.transparent,
-      //0xFF8C04DB
-      //0xFF2EAAFA
      // backgroundColor: const Color(0xFF04123F),
       body: Stack(children: [
         DrawerWidget(

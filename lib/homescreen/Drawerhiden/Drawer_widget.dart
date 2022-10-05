@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:todoalan/addTask/backupTask.dart';
 import 'package:todoalan/homescreen/avatarProgress.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:todoalan/main.dart';
 import 'package:todoalan/profile/profile.dart';
+import 'package:todoalan/themeSelect/themeSelect.dart';
 import 'drawer_items.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class DrawerWidget extends StatefulWidget {
   VoidCallback closdDrawer;
@@ -73,15 +76,63 @@ class _DrawerWidgetState extends State<DrawerWidget>
                         Navigator.push(context, MaterialPageRoute(builder: (context)
                         => profileUpdates()));
                       } else if (item.title == 'Backup'){
+                        
+                        FlutterTts flutterTts = FlutterTts();
+                        flutterTts.stop();
+
                         Navigator.push(context, MaterialPageRoute(builder: (context)
                         => backupTask()));
+                      } else if (item.title == 'Theme'){
+                        
+
+                        Navigator.push(context, MaterialPageRoute(builder: (context)
+                        => themeSelect()));
                       } else {
-                        Fluttertoast.showToast(  
-                        msg: 'Maintenance',  
-                        toastLength: Toast.LENGTH_LONG,  
-                        gravity: ToastGravity.BOTTOM,  
-                        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-                        textColor: Colors.white);                         
+                       // isNotificationSound = prefs.getBool('isNotificationSound')
+                      showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                            title: Text(isNotificationSound == true ? "Do you want to disable notification speak?" 
+                            : "Do you want to enable notification speak?",
+                            style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI')),
+                            //content: Text("Are you sure to delete?",
+                            //style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
+                            actions: [
+                              FlatButton(
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: Text("No",
+                                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
+                              FlatButton(
+                                  onPressed: () async{
+                                    Navigator.of(context).pop();  
+                                    SharedPreferences prefs = await SharedPreferences.getInstance();   
+                                    if (isNotificationSound == true) {
+                                      await prefs.setBool('isNotificationSound', false);
+                                      setState(() {
+                                        isNotificationSound = false;
+                                      });
+                                    } else {
+                                      await prefs.setBool('isNotificationSound', true);
+                                      setState(() {
+                                        isNotificationSound = true;
+                                      });                                      
+                                    }
+                                    
+                                    Fluttertoast.showToast(  
+                                    msg: isNotificationSound == true ? 'Notification sound enabled..!' 
+                                    : 'Notification sound disabled..!',  
+                                    toastLength: Toast.LENGTH_LONG,  
+                                    gravity: ToastGravity.BOTTOM,  
+                                    backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                                    textColor: Colors.white);   
+
+                                  },
+                                  child: Text("Yes",
+                                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
+                            ],
+                          ));                       
                       }
                 
                     },
@@ -152,7 +203,9 @@ class _DrawerWidgetState extends State<DrawerWidget>
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setBool('validation', false); 
             await  prefs.setBool('isDark', false);   
-
+            await prefs.setInt('NavBartheme', 1);
+            
+            NavBartheme = 1;
 
             RestartWidget.restartApp(context);
 

@@ -41,10 +41,14 @@ class MyAppState extends State<MyApp> {
     prefs.getBool('isDark') == true ? changeTheme(ThemeMode.dark) : changeTheme(ThemeMode.light);  
     setState(() {
     isDark = prefs.getBool('isDark');
+    NavBartheme = prefs.getInt('NavBartheme') ?? 1; 
+    isNotificationSound = prefs.getBool('isNotificationSound') ?? false;
     });
     }catch(e){
       setState(() {
         isDark = false;
+        NavBartheme = 1;
+        isNotificationSound = false;
       });
     }
     });
@@ -59,9 +63,11 @@ class MyAppState extends State<MyApp> {
     });
     return getUserEmail;}
 
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'ToDo',
       theme: ThemeData(),
       darkTheme: ThemeData.dark(),
@@ -181,3 +187,18 @@ class ThemeClass{
   );
 }
 
+//Navbar theme.....................................................
+List<Color> colors1 = [Color(0xFFED7B8A), Color(0xFF04123F)];
+List<Color> colors2 = [Color(0xFFED7B8A), Color(0xFF9055FF)];
+List<Color> colors3 = [Color(0xFF8C04DB), Color(0xFF04123F)];
+List<Color> colors4 = [Color(0xFF8C04DB), Color(0xFF2EAAFA)];
+List<Color> colors5 = [Color(0xFF8C04DB), Color(0xFFFFCAC9)];
+List<Color> colors6 = [Color(0xFF737DEF), Color(0xFFFFCAC9)];
+List<Color> colors7 = [Color(0xFF737DEF), Color(0xFF2EAAFA)];
+List<Color> colors8 = [Color(0xFF8C04DB), Color(0xFF2EAAFA)];
+List<Color> colors9 = [Color(0xFF8C04DB), Color(0xFF04123F)];
+List<Color> colors10 = [Color(0xFFEC00BC), Color(0xFFFC6767)];
+List<Color> colors11 = [Color(0xFFEC00BC), Color(0xFF04123F)];
+List<Color> colors12 = [Color(0xFFECBC), Color(0xFFC9F0E4)];
+List<Color> colors13 = [Color(0xFFA0B5EB), Color(0xFF3957ED)];
+List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];

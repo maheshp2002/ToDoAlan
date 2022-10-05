@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:todoalan/main.dart';
@@ -268,7 +269,9 @@ class _deleteAccountState extends State<deleteAccount> {
             await prefs.setBool('validation', false); 
             await  prefs.setBool('isDark', false);   
             await prefs.remove(widget.email);
-
+            await prefs.setInt('NavBartheme', 1);
+           
+            NavBartheme = 1;
 
             RestartWidget.restartApp(context);
 
@@ -319,7 +322,7 @@ String encodeQueryParameters(Map<String, String> params) {
 }
 final Uri emailLaunchUri = Uri(
   scheme: 'mailto',
-  path: 'brokencodetech@gmail.com',
+  path: 'abivandiyil001@gmail.com',
   query: encodeQueryParameters(<String, String>{
     'subject': 'Delete account',
     'body' : 'Email-id: ${user!.email!} \nUsername: ${widget.name}' 

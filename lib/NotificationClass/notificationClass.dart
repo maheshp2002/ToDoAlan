@@ -3,7 +3,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+//import 'package:flutter_tts/flutter_tts.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
@@ -78,14 +78,17 @@ static Future init ({bool initScheduled = false}) async {
  final android = AndroidInitializationSettings('@mipmap/ic_launcher');
  final iOS = IOSInitializationSettings();
  final settings = InitializationSettings(android: android, iOS: iOS);
- FlutterTts flutterTts = FlutterTts();
+ //FlutterTts flutterTts = FlutterTts();
 
 //if app is closed 
 final details = await _notifications.getNotificationAppLaunchDetails();
 if (details != null && details.didNotificationLaunchApp) {
   onNotifications.add(details.payload);
+  // Future.delayed(Duration(seconds: 10),() async{
+  //   await flutterTts.stop();
+  // });
   
-  await flutterTts.speak(details.payload.toString());
+  //await flutterTts.speak(details.payload.toString());
 }
 
  await _notifications.initialize(

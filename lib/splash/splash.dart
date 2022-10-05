@@ -1,6 +1,7 @@
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:todoalan/main.dart';
 
@@ -20,6 +21,7 @@ class Splash extends StatefulWidget {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     isValidation = await prefs.getBool("validation") ?? false;
   });
+  getTheme();
   _navigatetoHome();
   }
 
@@ -72,6 +74,93 @@ class Splash extends StatefulWidget {
         ),
     );
 }
+  getTheme() {
+    if (NavBartheme == 1) {
+      setState(() {
+        navColor = [Color(0xFFED7B8A), Color(0xFF04123F)];
+      });
+      
+    }
+    else if (NavBartheme == 2) {
+      setState(() {
+        navColor = [Color(0xFFED7B8A), Color(0xFF9055FF)];
+      });
+      
+    } 
+    else if (NavBartheme == 3) {
+      setState(() {
+        navColor = [Color(0xFF8C04DB), Color(0xFF04123F)];
+      });
+      
+    } 
+    else if (NavBartheme == 4) {
+      setState(() {
+        navColor = [Color(0xFF8C04DB), Color(0xFF2EAAFA)];
+      });
+      
+    } 
+    else if (NavBartheme == 5) {
+      setState(() {
+        navColor = [Color(0xFF8C04DB), Color(0xFFFFCAC9)];
+      });
+      
+    } 
+    else if (NavBartheme == 6) {
+      setState(() {
+        navColor = [Color(0xFF737DEF), Color(0xFFFFCAC9)];
+      });
+      
+    } 
+    else if (NavBartheme == 7) {
+      setState(() {
+        navColor = [Color(0xFF737DEF), Color(0xFF2EAAFA)];
+      });
+      
+    } 
+    else if (NavBartheme == 8) {
+      setState(() {
+        navColor = [Color(0xFF8C04DB), Color(0xFF2EAAFA)];
+      });
+     
+    } 
+    else if (NavBartheme == 9) {
+      setState(() {
+        navColor = [Color(0xFF8C04DB), Color(0xFF04123F)];
+      });
+      
+    } 
+    else if (NavBartheme == 10) {
+      setState(() {
+        navColor = [Color(0xFFEC00BC), Color(0xFFFC6767)];
+      });
+      
+    } 
+    else if (NavBartheme == 11) {
+      setState(() {
+        navColor = [Color(0xFFEC00BC), Color(0xFF04123F)];
+      });
+      
+    } 
+    else if (NavBartheme == 12) {
+      setState(() {
+        navColor = [Color(0xFFECBC), Color(0xFFC9F0E4)];
+      });
+      
+    } 
+    else if (NavBartheme == 13) {
+      setState(() {
+        navColor = [Color(0xFFA0B5EB), Color(0xFF3957ED)];
+      });
+      
+    } 
+    else {
+      setState(() {
+        navColor = [Color(0xFF04123F), Color(0xFF04123F)];
+      });
+      
+    }
+
+  }
 
 
 }

@@ -11,6 +11,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:todoalan/main.dart';
 
 
 enum Menu { itemDelete, itemClearSelection }
@@ -201,7 +202,7 @@ class _backupTaskState extends State<backupTask> {
               style: TextStyle(
                 color: Theme.of(context).hintColor,
                 fontFamily: 'BrandonBI',
-                fontSize: 18,
+                fontSize: 25,
               ),
             ),
             elevation: 0.0,
@@ -271,9 +272,7 @@ class _backupTaskState extends State<backupTask> {
           SizedBox(
            height: he * 0.04,
           ),
-          FadeAnimation(
-          delay: 0.8,
-          child:
+
           ListView.builder(
            physics: const ScrollPhysics(),
            padding: const EdgeInsets.all(5),
@@ -281,7 +280,9 @@ class _backupTaskState extends State<backupTask> {
            shrinkWrap: true,
            itemCount: snapshot.data.docs.length,        
            itemBuilder: (BuildContext context, int index) {
-            return  Slidable(
+            return FadeAnimation(
+              delay: 1,
+              child: Slidable(
               endActionPane: ActionPane(
               motion: const StretchMotion(),
               children: [
@@ -332,12 +333,17 @@ class _backupTaskState extends State<backupTask> {
                   List items = todos.map((e) => e.toJson()).toList();
                   prefs!.setString(user!.email!, jsonEncode(items));
 
+                  RestartWidget.restartApp(context);
+                  
                   Fluttertoast.showToast(  
                    msg: 'Task added..! Please restart your app..!',  
                   toastLength: Toast.LENGTH_LONG,  
                   gravity: ToastGravity.BOTTOM,  
                   backgroundColor: Color.fromARGB(255, 255, 178, 89), 
-                  textColor: Colors.white);                     
+                  textColor: Colors.white); 
+
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MyApp()));
+
               },
               backgroundColor:
               const Color(0xFF21B7CA),
@@ -349,8 +355,8 @@ class _backupTaskState extends State<backupTask> {
               ),
             child: makeListTile(snapshot.data.docs[index].id, snapshot.data.docs[index]['category'], snapshot.data.docs[index]['title'],
             snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['isSelected'],),
-             );
-           })),
+             ));
+           })
             ]);           
       }})
       );
@@ -467,6 +473,7 @@ makeListTile(String id, category, title, description, time, isSelected) {
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 FlatButton(
                     onPressed: () async{
+                      Navigator.of(context).pop();             
                       await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
                       .collection('backup').doc(id).delete();   
                       Fluttertoast.showToast(  
@@ -476,7 +483,6 @@ makeListTile(String id, category, title, description, time, isSelected) {
                       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
                       textColor: Colors.white);   
 
-                      Navigator.of(context).pop();             
                     },
                     child: Text("Yes",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
@@ -593,6 +599,13 @@ makeListTile(String id, category, title, description, time, isSelected) {
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 FlatButton(
                     onPressed: () async{    
+                    Navigator.of(context).pop();
+                      Fluttertoast.showToast(  
+                      msg: 'Please wait..!',  
+                      toastLength: Toast.LENGTH_LONG,  
+                      gravity: ToastGravity.BOTTOM,  
+                      backgroundColor: Color.fromARGB(255, 255, 89, 89),  
+                      textColor: Colors.white);                      
                       try{
                         for (var i = 0 ; i <= growableList.length - 1 ; i++){
                           try{
@@ -617,7 +630,6 @@ makeListTile(String id, category, title, description, time, isSelected) {
                       backgroundColor: Color.fromARGB(255, 255, 89, 89),  
                       textColor: Colors.white);  
                     }  
-                    Navigator.of(context).pop();
                     },
                     child: Text("Yes",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
