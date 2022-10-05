@@ -102,14 +102,14 @@ Future<String> uploadFile(_image) async {
   return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: isloading ? Colors.black : Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: isloading ? Color(0Xff191f26) : Theme.of(context).scaffoldBackgroundColor,
         leading: IconButton(
         onPressed: () => Navigator.of(context).pop(),
         icon: Icon(FontAwesomeIcons.arrowLeft, color: Theme.of(context).hintColor,)
         ),
       ),
       resizeToAvoidBottomInset: true,
-      backgroundColor: isloading == true ? Colors.black : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isloading == true ? Color(0Xff191f26) : Theme.of(context).scaffoldBackgroundColor,
       body: isloading == true ? Center(child: Image.asset("assets/gif/loading1.gif"))
       : StreamBuilder(
       stream: FirebaseFirestore.instance.collection("Users").doc(user!.email!).snapshots(),

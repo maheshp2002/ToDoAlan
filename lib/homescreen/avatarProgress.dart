@@ -41,7 +41,7 @@ class _Progerss_AvaterState extends State<Progerss_Avater>
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 210),
+      margin: const EdgeInsets.only(right: 150),
       width: 110,
       height: 110,
       child: Stack(

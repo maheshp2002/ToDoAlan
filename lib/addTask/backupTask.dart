@@ -308,6 +308,13 @@ class _backupTaskState extends State<backupTask> {
 
                   List items = todos.map((e) => e.toJson()).toList();
                   prefs!.setString(user!.email!, jsonEncode(items));
+
+                  Fluttertoast.showToast(  
+                   msg: 'Task added..! Please restart your app..!',  
+                  toastLength: Toast.LENGTH_LONG,  
+                  gravity: ToastGravity.BOTTOM,  
+                  backgroundColor: Color.fromARGB(255, 255, 178, 89), 
+                  textColor: Colors.white);                     
               },
               backgroundColor:
               const Color(0xFF21B7CA),

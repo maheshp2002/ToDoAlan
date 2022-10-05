@@ -105,8 +105,12 @@ class _DrawerWidgetState extends State<DrawerWidget>
           height: 47,
           alignment: Alignment.center,
           decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFF04123F),
+          // gradient:  LinearGradient(
+          // begin: Alignment.topCenter,
+          // end: Alignment.bottomRight,
+          // colors: [Color.fromARGB(195, 237, 123, 138), Color.fromARGB(178, 9, 39, 139)]),            
+          shape: BoxShape.circle,
+          color: Color(0xFF04123F),
           ),
           child: IconButton(
               onPressed: widget.closdDrawer,
@@ -202,11 +206,10 @@ class _DrawerWidgetState extends State<DrawerWidget>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            snapshot.data["name"],
+            snapshot.data["name"],textAlign: TextAlign.start,
             style: TextStyle(fontFamily: 'BrandonBI', fontSize: 35, color: Colors.white),
           ),
-          Text("about: " + 
-            snapshot.data["about"],
+          Text(snapshot.data["about"], textAlign: TextAlign.start,
             style: TextStyle(fontFamily: 'BrandonLI', fontSize: 20, color: Colors.white)
           ),
         ],

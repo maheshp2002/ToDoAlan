@@ -67,7 +67,7 @@ class Splash extends StatefulWidget {
 
       Row(mainAxisAlignment: MainAxisAlignment.center,
         children:  [ 
-        Text("from - Broken Code\n ", textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor,fontFamily: 'BrandonL'))]),
+        Text("from - \n ", textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor,fontFamily: 'BrandonL'))]),
 
         ),
     );

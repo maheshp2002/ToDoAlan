@@ -46,14 +46,23 @@ class _HidenDrawerState extends State<HidenDrawer> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      backgroundColor: const Color(0xFF04123F),
+  Widget build(BuildContext context) => Container(
+  decoration: const BoxDecoration(
+  gradient:  LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFFED7B8A), Color(0xFF04123F)])),
+  child: Scaffold(
+      backgroundColor: Colors.transparent,
+      //0xFF8C04DB
+      //0xFF2EAAFA
+     // backgroundColor: const Color(0xFF04123F),
       body: Stack(children: [
         DrawerWidget(
           closdDrawer: closeDrawer,
         ),
         buildpage()
-      ]));
+      ])));
 
   Widget buildpage() {
     return GestureDetector(
