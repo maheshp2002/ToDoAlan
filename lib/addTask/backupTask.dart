@@ -61,7 +61,9 @@ class _backupTaskState extends State<backupTask> {
     }
   }
 
-    Future totalLikes() async {
+//initialize cateogry.................................................................................................
+  Future totalLikes() async {
+    if (mounted) { 
       var respectsQuery = FirebaseFirestore.instance
       .collection("Users").doc(user!.email!)
       .collection('backup')
@@ -121,7 +123,12 @@ class _backupTaskState extends State<backupTask> {
         otherslength = totalEquals5;
       });
     }
+  }
 
+  // @override
+  // void dispose(){
+  //   super.dispose();
+  // }
 
   Widget build(BuildContext context) {
   var we = MediaQuery.of(context).size.width;
@@ -219,7 +226,20 @@ class _backupTaskState extends State<backupTask> {
     return ListView(
     physics: const BouncingScrollPhysics(),
     children: [
+    SizedBox(height: he * 0.06,),
+
+    Padding(padding: EdgeInsets.only(left: 15),
+    child: Text("CATEGORIES",style: TextStyle(letterSpacing: 1, color: Colors.grey.withOpacity(0.8), fontSize: 13),
+    )),   
+
     SizedBox(height: 20,),
+
+     Padding(padding: EdgeInsets.only(left: 15),
+    child: Text("Task",style: TextStyle(letterSpacing: 1, color: Colors.grey.withOpacity(0.8), fontSize: 13),
+    )),  
+
+    SizedBox(height: 20,),
+
     Padding(padding: EdgeInsets.only(left: 10),
     child: FadeAnimation(
             delay: 0.8,
@@ -248,9 +268,12 @@ class _backupTaskState extends State<backupTask> {
             )
             ),
 
-              SizedBox(
-              height: he * 0.04,
-              ),
+          SizedBox(
+           height: he * 0.04,
+          ),
+          FadeAnimation(
+          delay: 0.8,
+          child:
           ListView.builder(
            physics: const ScrollPhysics(),
            padding: const EdgeInsets.all(5),
@@ -327,7 +350,7 @@ class _backupTaskState extends State<backupTask> {
             child: makeListTile(snapshot.data.docs[index].id, snapshot.data.docs[index]['category'], snapshot.data.docs[index]['title'],
             snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['isSelected'],),
              );
-           }),
+           })),
             ]);           
       }})
       );
