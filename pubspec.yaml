@@ -69,6 +69,14 @@ dev_dependencies:
 
   #Alan voice
   alan_voice: ^3.6.0
+  speech_to_text: ^4.2.0
+  
+  # floating action button effect
+  avatar_glow: ^2.0.2
+
+
+  # copy text to clipboard
+  clipboard: ^0.1.3
 
   #notification
   flutter_tts: ^3.5.3

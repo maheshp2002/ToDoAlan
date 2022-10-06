@@ -6,9 +6,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/login/login.dart';
 import 'package:todoalan/splash/splash.dart';
+import 'package:flutter/services.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   await Firebase.initializeApp();
   runApp(RestartWidget(

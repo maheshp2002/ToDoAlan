@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todoalan/AI/AI.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -11,16 +12,14 @@ import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:todoalan/addTask/backupTask.dart';
-import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:alan_voice/alan_voice.dart';
-import 'package:todoalan/profile/profile.dart';
-import 'package:todoalan/themeSelect/themeSelect.dart';
+// import 'package:alan_voice/alan_voice.dart';
+
+
 
 //global variables................................................................................................
 late bool? isDark;
@@ -37,6 +36,10 @@ class homepage extends StatefulWidget {
   @override
   homepageState createState() => homepageState();
 }
+
+//global variables..................................................................................................
+  bool isEnable = false;
+
 class homepageState extends State<homepage> {
 
 //local variables..................................................................................................
@@ -55,6 +58,10 @@ class homepageState extends State<homepage> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
    
+//local variables for speech to text..................................................................................................
+
+
+
 //initializing todo.................................................................................................
   setupTodo() async {
     prefs = await SharedPreferences.getInstance();
@@ -74,16 +81,16 @@ class homepageState extends State<homepage> {
     prefs!.setString(user!.email!, jsonEncode(items));
   }
 
-//Alan button......................................................................................................
-  setUpalan() {
-   setState(() {
-      isAlanActive = true;
-    });
-    AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
-        buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
-        bottomMargin: 100);
-    AlanVoice.callbacks.add((command) => handleCmd(command.data));
-  }
+// //Alan button......................................................................................................
+//   setUpalan() {
+//    setState(() {
+//       isAlanActive = true;
+//     });
+//     AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
+//         buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
+//         bottomMargin: 100);
+//     AlanVoice.callbacks.add((command) => handleCmd(command.data));
+//   }
 
   @override
   void initState() {
@@ -102,7 +109,6 @@ class homepageState extends State<homepage> {
 
     //setUpalan();
   }
-
 
 //lsiten to notification..........................................................................................
 void listenNotifications() =>
@@ -129,15 +135,31 @@ void onClickedNotification(String? payload) async{
   var he = MediaQuery.of(context).size.height;
 
   return Scaffold(
-    floatingActionButton: GestureDetector(onLongPress: () {
-    if (isAlanActive == true) {
-      AlanVoice.deactivate();
+    bottomSheet: isEnable ? Container(
+      padding: EdgeInsets.only(bottom: 10, right: 100),
+      alignment: Alignment.bottomLeft,
+      color:  Theme.of(context).scaffoldBackgroundColor,
+      height: 50,
+      child: PersistentWidget(),
+    ) : null,
+    floatingActionButton:   GestureDetector(onLongPress: () { 
+      isEnable ?
       setState(() {
-        isAlanActive = false;
+        flutterTts.speak("stopped listening"); 
+        isEnable = false;
+      }) 
+      : setState(() {
+        flutterTts.speak("started listening"); 
+        isEnable = true;
       });
-    }  else {
-      setUpalan();
-    }
+    // if (isAlanActive == true) {
+    //   AlanVoice.deactivate();
+    //   setState(() {
+    //     isAlanActive = false;
+    //   });
+    // }  else {
+    //   setUpalan();
+    // }
     },
     child: FloatingActionButton(onPressed: (){
       addTodo();
@@ -145,6 +167,7 @@ void onClickedNotification(String? payload) async{
     backgroundColor: Color.fromARGB(255, 255, 178, 89),
     child: Icon(FontAwesomeIcons.plus, color: Colors.white, ),
     ),),
+
     appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           leading: IconButton(
@@ -182,29 +205,30 @@ void onClickedNotification(String? payload) async{
       
       backgroundColor:  Theme.of(context).scaffoldBackgroundColor,
 
+      
       body: ListView(children: [
 
                     FadeAnimation(
-                      delay: widget.animationtime,
-                      child: Container(
-                        margin: EdgeInsets.only(top: he * 0.02),
-                        width: we * 0.9,
-                        height: he * 0.15,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Timecall(),
-                            SizedBox(
-                              height: he * 0.06,
-                            ),
-                            Padding(padding: EdgeInsets.only(left: 15),
-                            child: Text(
-                              "CATEGORIES",
-                              style: TextStyle(
-                                  letterSpacing: 1,
-                                  color: Colors.grey.withOpacity(0.8),
-                                  fontSize: 13),
-                            )),
+                    delay: widget.animationtime,
+                    child: Container(
+                    margin: EdgeInsets.only(top: he * 0.02),
+                    width: we * 0.9,
+                    height: he * 0.15,
+                    child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    Timecall(),
+                    SizedBox(
+                    height: he * 0.06,
+                  ),
+                  Padding(padding: EdgeInsets.only(left: 15),
+                  child: Text(
+                  "CATEGORIES",
+                  style: TextStyle(
+                  letterSpacing: 1,
+                  color: Colors.grey.withOpacity(0.8),
+                  fontSize: 13),
+                    )),
                           ],
                         ),
                       ),
@@ -613,137 +637,170 @@ makeListTile(Todo todo, index) {
 
 //alan voice commands....................................................................................................
 
-  handleCmd(Map<String, dynamic> res) async{
-    int id = Random().nextInt(2147483637);
-    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
-    switch (res["command"]) {
-      case "Add Task":
-        addTodo();
-        print('Opening');
-        break;
+//   handleCmd(Map<String, dynamic> res) async{
+//     int id = Random().nextInt(2147483637);
+//     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+//     switch (res["command"]) {
+//       case "Add Task":
+//         addTodo();
+//         print('Opening');
+//         break;
 
-      case "Previous":
-        Navigator.of(context).pop();
-        print('previous');
-        break;
+//       case "Previous":
+//         Navigator.of(context).pop();
+//         print('previous');
+//         break;
 
-      case "Go back":
-        Navigator.of(context).pop();
-        print('Go back');
-        break;
+//       case "Go back":
+//         Navigator.of(context).pop();
+//         print('Go back');
+//         break;
 
-      case "HomePage":
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
-        print('Opening');
-        break;
+//       case "HomePage":
+//         Navigator.push(
+//             context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+//         print('Opening');
+//         break;
 
-      case "Open profile":
-        print('Open profile');
-        Navigator.push(
-          context, MaterialPageRoute(builder: (context) => profileUpdates()));;
-        break;
+//       case "Open profile":
+//         print('Open profile');
+//         Navigator.push(
+//           context, MaterialPageRoute(builder: (context) => profileUpdates()));;
+//         break;
 
-      case "Open theme":
-        print('Open theme');
-        Navigator.push(
-          context, MaterialPageRoute(builder: (context) => themeSelect()));
-        break;
+//       case "Open theme":
+//         print('Open theme');
+//         Navigator.push(
+//           context, MaterialPageRoute(builder: (context) => themeSelect()));
+//         break;
 
-      case "Open backup":
-        print('Open backup');
-        Navigator.push(
-          context, MaterialPageRoute(builder: (context) => backupTask()));;
-        break;
+//       case "Open backup":
+//         print('Open backup');
+//         Navigator.push(
+//           context, MaterialPageRoute(builder: (context) => backupTask()));;
+//         break;
 
-      case "Disable notification sound":
-        print('Disable notification sound');
-        SharedPreferences prefs = await SharedPreferences.getInstance(); 
-        await prefs.setBool('isNotificationSound', false);
-        setState(() {
-          isNotificationSound = false;
-        });
-        //print("######################################$isNotificationSound");
-        break;
+//       case "Disable notification sound":
+//         print('Disable notification sound');
+//         SharedPreferences prefs = await SharedPreferences.getInstance(); 
+//         await prefs.setBool('isNotificationSound', false);
+//         setState(() {
+//           isNotificationSound = false;
+//         });
+//         //print("######################################$isNotificationSound");
+//         break;
 
-      case "Enable notification sound":
-        print('Enable notification sound');
-        SharedPreferences prefs = await SharedPreferences.getInstance(); 
-        await prefs.setBool('isNotificationSound', true);
-        setState(() {
-          isNotificationSound = true;
-        });           
-        //print("######################################$isNotificationSound");
-        break;        
-      //add task.......................................................
-      case "getTitle":
-        titleController.text = res["text"];
-        currentState.title = titleController.text;
-        setVisuals();
-        print('Tell me the title');
-        break;
+//       case "Enable notification sound":
+//         print('Enable notification sound');
+//         SharedPreferences prefs = await SharedPreferences.getInstance(); 
+//         await prefs.setBool('isNotificationSound', true);
+//         setState(() {
+//           isNotificationSound = true;
+//         });           
+//         //print("######################################$isNotificationSound");
+//         break;        
+//       //add task.......................................................
+//       case "getTitle":
+//         titleController.text = res["text"];
+//         currentState.title = titleController.text;
+//         setVisuals();
+//         print('Tell me the title');
+//         break;
 
-      case "Description":
-        descriptionController.text = res["text"];
-        currentState.description = descriptionController.text;
-        setVisuals();
-        print('Tell me the description');
-        break;
+//       case "Description":
+//         descriptionController.text = res["text"];
+//         currentState.description = descriptionController.text;
+//         setVisuals();
+//         print('Tell me the description');
+//         break;
 
-      case "Hours":
-        hoursText = res["text"];
-        currentState.hours = hoursText;
-        setVisuals();        
-        print('Tell me the hours');
-        break;
+//       case "Hours":
+//         hoursText = res["text"];
+//         currentState.hours = hoursText;
+//         setVisuals();        
+//         print('Tell me the hours');
+//         break;
 
-      case "Minutes":
-        minutesText = res["text"];
-        currentState.minutes = minutesText;
-        setVisuals();         
-        print('Tell me the minutes');
-        break;
+//       case "Minutes":
+//         minutesText = res["text"];
+//         currentState.minutes = minutesText;
+//         setVisuals();         
+//         print('Tell me the minutes');
+//         break;
 
- //category.......................................................       
-      case "Work":
-        print('Selecting Work');
-        addTaskState(todo: t, isEdit: false).getCategory('Work');
-        break;
+//  //category.......................................................       
+//       case "Work":
+//         print('Selecting Work');
+//         addTaskState(todo: t, isEdit: false).getCategory('Work');
+//         break;
 
-      case "Personal":
-        print('Selecting Personal');
-        addTaskState(todo: t, isEdit: false).getCategory('Personal');
-        break;
+//       case "Personal":
+//         print('Selecting Personal');
+//         addTaskState(todo: t, isEdit: false).getCategory('Personal');
+//         break;
 
-      case "Sports":
-        print('Selecting Sports');
-        addTaskState(todo: t, isEdit: false).getCategory('Sports');
-        break;
+//       case "Sports":
+//         print('Selecting Sports');
+//         addTaskState(todo: t, isEdit: false).getCategory('Sports');
+//         break;
 
-      case "Education":
-        print('Selecting Education');
-        addTaskState(todo: t, isEdit: false).getCategory('Education');
-        break;
+//       case "Education":
+//         print('Selecting Education');
+//         addTaskState(todo: t, isEdit: false).getCategory('Education');
+//         break;
 
-      case "Medical":
-        print('Selecting Medical');
-        addTaskState(todo: t, isEdit: false).getCategory('Medical');
-        break;
+//       case "Medical":
+//         print('Selecting Medical');
+//         addTaskState(todo: t, isEdit: false).getCategory('Medical');
+//         break;
 
-      case "Others":
-        print('Selecting Others');
-        addTaskState(todo: t, isEdit: false).getCategory('Others');
-        break;
+//       case "Others":
+//         print('Selecting Others');
+//         addTaskState(todo: t, isEdit: false).getCategory('Others');
+//         break;
 
-      case "Save task":
-        print('Saving task');
-        addVoiceTask();
-        break;
+//       case "Save task":
+//         print('Saving task');
+//         addVoiceTask();
+//         break;
 
-      default:
-        print("Command not found");
-        break;
-    }
-  }
+//       default:
+//         print("Command not found");
+//         break;
+//     }
+//   }
+
 
 } 
+
+// class HomePage extends StatefulWidget {
+//   @override
+//   _HomePageState createState() => _HomePageState();
+// }
+
+// class _HomePageState extends State<HomePage> {
+
+
+//   @override
+//   Widget build(BuildContext context) => Scaffold(
+//         body: SingleChildScrollView(
+//           reverse: true,
+//           padding: const EdgeInsets.all(30).copyWith(bottom: 150),
+//           child: 
+//         ),
+//         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+//         floatingActionButton: AvatarGlow(
+//           animate: isListening,
+//           endRadius: 75,
+//           glowColor: Theme.of(context).primaryColor,
+//           child: FloatingActionButton(
+//             child: Icon(),
+//             onPressed: toggleRecording,
+//           ),
+//         ),
+//       );
+
+
+// }
+
+
