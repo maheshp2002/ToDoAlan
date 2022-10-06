@@ -109,6 +109,35 @@ return scheduledDate.isBefore ( now )
 scheduleWeekly ( Time ( 8 ] , days : [ DateTime.monday , DateTime . tuesday
 
 
+E/flutter ( 8301): #12     Timer._createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart:18:15)
+E/flutter ( 8301): #13     _Timer._runTimers (dart:isolate-patch/timer_impl.dart:395:19)
+E/flutter ( 8301): #14     _Timer._handleMessage (dart:isolate-patch/timer_impl.dart:426:5)
+E/flutter ( 8301): #15     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:192:12)
+E/flutter ( 8301):
+D/TTS     ( 8301): Utterance ID has been stopped: c1c536c8-3588-4a8b-abab-b147eb797232. Interrupted: true
+D/TTS     ( 8301): Utterance ID has started: b052604d-61f7-4efa-b869-07f44d813b51
+I/antodo.todoala( 8301): Background concurrent copying GC freed 25379(1245KB) AllocSpace objects, 2(104KB) LOS objects, 24% free, 4MB/5MB, paused 1.700ms total 320.767ms
+W/Choreographer( 8301): Frame time is 12.007966 ms in the future! 
 
- This widget has been unmounted, so the State no longer has a context (and should be considered defunct).
-E/flutter (31035): Consider canceling any active work during "dispose" or using the "mounted" getter to determine
+
+E/flutter ( 8301): [ERROR:flutter/lib/ui/ui_dart_state.cc(209)] Unhandled Exception: Null check operator used on a null value
+E/flutter ( 8301): #0      addVoiceTask
+package:todoalan/addTask/addTask.dart:663
+E/flutter ( 8301): #1      Utils.saveTask
+package:todoalan/AI/utils.dart:143
+E/flutter ( 8301): #2      Utils.scanText
+package:todoalan/AI/utils.dart:83
+E/flutter ( 8301): #3      PersistentState.toggleRecording.<anonymous closure>.<anonymous 
+
+ Utterance ID has started: c5efaf4b-c2b1-424f-82bf-a5c7d04299c3
+W/Choreographer( 8301): Frame time is 14.384333 ms in the future!  Check that graphics HAL is generating vsync timestamps using the correct timebase.
+E/flutter ( 8301): [ERROR:flutter/lib/ui/ui_dart_state.cc(209)] Unhandled Exception: Null check operator used on a null value
+E/flutter ( 8301): #0      addVoiceTask
+package:todoalan/addTask/addTask.dart:663
+E/flutter ( 8301): #1      Utils.saveTask
+package:todoalan/AI/utils.dart:143
+E/flutter ( 8301): #2      Utils.scanText
+package:todoalan/AI/utils.dart:83
+E/flutter ( 8301): #3      PersistentState.toggleRecording.<anonymous closure>.<anonymous closure>
+package:todoalan/AI/AI.dart:99
+E/flutter ( 8301): #4      new Future.delayed.<anonymous closure> (dart:async/future.dart:393:39)

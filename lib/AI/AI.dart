@@ -93,7 +93,7 @@ class PersistentState extends State<PersistentWidget> {
         onResult: (text) => setState(() => this.text = text),
         onListening: (isListening) {
           setState(() => this.isListening = isListening);
-
+          
           if (!isListening) {
             Future.delayed(Duration(seconds: 1), () {
               Utils.scanText(text, context);

@@ -3,13 +3,14 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:todoalan/AI/AI.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:alan_voice/alan_voice.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
@@ -43,18 +44,17 @@ class addTask extends StatefulWidget {
 //global variable......................................................................................
 
   //controllerd for textfield
+  final timeController = TextEditingController();
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+  String globalCategory = "";
 
-  final currentState = FieldsState("", "", "", "");
-  String hoursText = '';
-  String minutesText = '';
+  //final currentState = FieldsState("", "", "", "");
 
-
-  void setVisuals() {
-    var visuals = jsonEncode(currentState);
-    AlanVoice.setVisualState(visuals);
-  }
+  // void setVisuals() {
+  //   var visuals = jsonEncode(currentState);
+  //   AlanVoice.setVisualState(visuals);
+  // }
 
 class addTaskState extends State<addTask> {
   
@@ -88,16 +88,16 @@ void initState() {
   super.initState();
   //check if is editing
     if (todo != null) {
-      titleController.text = currentState.title = todo.title;
-      descriptionController.text = currentState.description = todo.description;
+      titleController.text = todo.title;
+      descriptionController.text = todo.description;
      if(isEdit) {
-     _eventTime = todo.time;
-     hours = currentState.hours = todo.time.toString().substring(0, 2);
-     minutes = currentState.minutes = todo.time.toString().substring(3, 5);   
+     _eventTime = timeController.text = todo.time;
+     hours = todo.time.toString().substring(0, 2);
+     minutes = todo.time.toString().substring(3, 5);   
      isPickerSelected = true;
      }
       setState(() {});
-      setVisuals();
+     // setVisuals();
     }
 }
 
@@ -109,13 +109,13 @@ TimeOfDay? timepick = await showTimePicker(
 if (timepick != null) {
   setState(() {
     isPickerSelected = true;
-    _eventTime = timepick.toString().substring(10, 15);
+    _eventTime = timeController.text =  timepick.toString().substring(10, 15);
     hours = timepick.toString().substring(10, 12);
     minutes = timepick.toString().substring(13, 15);
   });
-  currentState.hours = hours;
-  currentState.minutes = minutes;
-  setVisuals();
+  // currentState.hours = hours;
+  // currentState.minutes = minutes;
+  // setVisuals();
 } 
 }
 
@@ -124,6 +124,12 @@ if (timepick != null) {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
     return Scaffold(
+      // floatingActionButton: !isEnable ? Container(
+      // padding: EdgeInsets.only(left: 20),
+      // alignment: Alignment.bottomLeft,
+      // height: 50,
+      // child: PersistentWidget(),
+      // ) : null,
       backgroundColor: Color.fromARGB(204, 244, 246, 253),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -170,8 +176,8 @@ if (timepick != null) {
                   child: TextFormField(
                     onChanged: (data) {
                       todo.title = data;
-                      currentState.title = data;
-                      setVisuals();
+                      // currentState.title = data;
+                      // setVisuals();
                     },
                     controller: titleController,
                     decoration: InputDecoration(
@@ -196,8 +202,8 @@ if (timepick != null) {
                   child: TextFormField(
                     onChanged: (data) {
                       todo.description = data;
-                      currentState.description = data;
-                      setVisuals();
+                      // currentState.description = data;
+                      // setVisuals();
                     },                    
                     controller: descriptionController,
                     decoration: InputDecoration(
@@ -223,7 +229,8 @@ if (timepick != null) {
                   width: we * 8,
                   //height: he * 0.12,
                   margin: EdgeInsets.only(top: 5, left: we * 0.1, bottom: he * 0.12),
-                  child: TextFormField(  
+                  child: TextFormField( 
+                    controller: timeController, 
                     enabled: false,
                     decoration: InputDecoration(
                       enabledBorder: InputBorder.none,
@@ -295,7 +302,8 @@ if (timepick != null) {
                 
                 setState(() {
                   todo.category = selectedCategory;
-                  todo.time = _eventTime;
+                  todo.time = timeController.text =  _eventTime;
+                  todo.time = timeController.text;
                 });
                 
                 //if is editing remove previous scheduled notification first
@@ -626,34 +634,48 @@ getCategory(String cat) async{
 }
 //add task via  voice
 
-addVoiceTask(){
 
-SharedPreferences? prefs;
-List todos = [];
-int id = Random().nextInt(2147483637);
-List<int> date = [1, 2, 3, 4, 5, 6, 7];
-User? user = FirebaseAuth.instance.currentUser;
-Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+addVoiceTask() async{
+  WidgetsFlutterBinding.ensureInitialized();
 
-//setting scheduled notification
+  prefs1 = await SharedPreferences.getInstance();
+
+  List todos = [];
+  int id = Random().nextInt(2147483637);
+  List<int> date = [1, 2, 3, 4, 5, 6, 7];
+  User? user = FirebaseAuth.instance.currentUser;
+  Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+
+  String hourstext = timeController.text.toString().substring(0, 2);
+  String minutestext = timeController.text.toString().substring(3, 5);   
+  
+  t.id = id;
+  t.title = titleController.text;
+  t.description = descriptionController.text;
+  t.time = timeController.text;
+  t.category = globalCategory;
+
+  //setting scheduled notification
                           
   NotificationApi.showScheduledNotification(
   id: t.id,
-  title: currentState.title,
-  body: currentState.description,
-  payload: currentState.description,
-  hh:  int.parse(hoursText),
-  mm: int.parse(minutesText),
+  title: titleController.text,
+  body: descriptionController.text,
+  payload: descriptionController.text,
+  hh:  int.parse(hourstext),
+  mm: int.parse(minutestext),
   ss: int.parse("00"),
   date: date,
   scheduledDate: DateTime.now().add(Duration(seconds: 10))
   );
- // todos.add(t);
-  List items = todos.map((e) => e.toJson()).toList();
-  prefs!.setString(user!.email!, jsonEncode(items));
 
-  titleController.clear();
-  descriptionController.clear();
+  todos.add(t); 
+
+  List items = todos.map((e) => e.toJson()).toList();
+  prefs1!.setString(user!.email!, jsonEncode(items));
+
+ // titleController.clear();
+  //descriptionController.clear();
 
 }
 

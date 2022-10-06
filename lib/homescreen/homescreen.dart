@@ -17,7 +17,8 @@ import 'package:todoalan/main.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:alan_voice/alan_voice.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 
 
@@ -39,7 +40,8 @@ class homepage extends StatefulWidget {
 
 //global variables..................................................................................................
   bool isEnable = false;
-
+  SharedPreferences? prefs1;
+  
 class homepageState extends State<homepage> {
 
 //local variables..................................................................................................
@@ -143,13 +145,14 @@ void onClickedNotification(String? payload) async{
       child: PersistentWidget(),
     ) : null,
     floatingActionButton:   GestureDetector(onLongPress: () { 
+      Permission.microphone;
       isEnable ?
       setState(() {
-        flutterTts.speak("stopped listening"); 
+        flutterTts.speak("see you again"); 
         isEnable = false;
       }) 
       : setState(() {
-        flutterTts.speak("started listening"); 
+        flutterTts.speak("Hey there, I'm here to help you"); 
         isEnable = true;
       });
     // if (isAlanActive == true) {

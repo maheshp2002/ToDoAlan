@@ -73,7 +73,7 @@ class _HomePageState extends State<sampleHomePage> {
 
           if (!isListening) {
             Future.delayed(Duration(seconds: 1), () {
-              Utils.scanText(text);
+              Utils.scanText(text, context);
             });
           }
         },

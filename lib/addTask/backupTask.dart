@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todoalan/AI/AI.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -11,6 +12,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/main.dart';
 
 
@@ -135,6 +137,12 @@ class _backupTaskState extends State<backupTask> {
   var we = MediaQuery.of(context).size.width;
   var he = MediaQuery.of(context).size.height;
     return Scaffold(
+      floatingActionButton: isEnable ? Container(
+      padding: EdgeInsets.only(left: 20),
+      alignment: Alignment.bottomLeft,
+      height: 50,
+      child: PersistentWidget(),
+      ) : null,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         actions: <Widget>[
