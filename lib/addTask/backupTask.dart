@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/AI/AI.dart';
+import 'package:todoalan/AI/AI/API.dart';
+import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -14,6 +16,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/main.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 
 enum Menu { itemDelete, itemClearSelection }
@@ -41,6 +44,8 @@ class _backupTaskState extends State<backupTask> {
   int sportslength = 0;
   int medicallength = 0;
   int otherslength = 0;
+  String text = '';
+  bool isListening = false;
 
   @override
   void initState(){
@@ -141,7 +146,31 @@ class _backupTaskState extends State<backupTask> {
       padding: EdgeInsets.only(left: 20),
       alignment: Alignment.bottomLeft,
       height: 50,
-      child: PersistentWidget(),
+      child:   Row(mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+    AvatarGlow(
+    animate: isListening,
+    endRadius: 35,
+    glowColor: Color.fromARGB(255, 255, 17, 1),
+    child: FloatingActionButton(
+    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: toggleRecording,
+    ),
+    ),  
+    Container(
+    width: 100,
+    height: 300,
+    child: SingleChildScrollView(
+    reverse: true,  
+    child:
+    SubstringHighlight(
+    text: text,
+    terms: Command.all,
+    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    ))),
+    ],),
       ) : null,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -587,6 +616,26 @@ makeListTile(String id, category, title, description, time, isSelected) {
       ),
     ));
   }
+
+  Future toggleRecording() => SpeechApi().toggleRecording(
+    onResult: (text) => setState(() {
+      setState(() {
+        isListening = true;
+      });
+      this.text = text;
+      Future.delayed(Duration(milliseconds: 1), () {
+         Utils().scanText(text, context);
+      });
+      Future.delayed(Duration(milliseconds: 10), () {
+      setState(() {
+        isListening = false;
+      });
+      });
+    }),
+    onListening: (isListening) {
+     // setState(() => this.isListening = isListening);
+      },
+  );
 
 //delete selected task.....................................................
   selectedItem() async {

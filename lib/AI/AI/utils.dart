@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:todoalan/AI/AI/API.dart';
 import 'package:todoalan/addTask/addTask.dart';
 import 'package:todoalan/profile/profile.dart';
 import 'package:todoalan/addTask/backupTask.dart';
@@ -8,9 +9,11 @@ import 'package:todoalan/themeSelect/themeSelect.dart';
 
 
 class Command {
-  static final all = [backup, profile, goBack, homepage, title, description, time, saveTask, category, theme];
+  static final all = [backup, profile, goBack, homepage, title, description, time, saveTask, category, theme, hour, minutes];
 
   static const time = 'time is';
+  static const hour = 'hours is';
+  static const minutes = 'minute is';
   static const title = 'title is';
   static const goBack = 'go back';
   static const theme = 'open theme';
@@ -18,7 +21,7 @@ class Command {
   static const backup = 'open backup';
   static const profile = 'open profile';
   static const category = 'category is';
-  static const homepage = 'open homepage';
+  static const homepage = 'open home page';
   static const description = 'description is';
 }
 
@@ -26,14 +29,13 @@ class Command {
 final  AISpeak = new FlutterTts();
 
 class Utils {
-  static scanText(String rawText, BuildContext context) {
-    final text = rawText.toLowerCase();
-
+ // String text = '';
+  scanText(String rawText, BuildContext context) {
+  String  text = rawText.toLowerCase();
     if (text.contains(Command.backup)) {
      // _getTextAfterCommand(text: text, command: Command.backup);
-
       AISpeak.speak("opening backup"); 
-
+      rawText = '';
       openBackup(context);
 
     } else if (text.contains(Command.profile)) {
@@ -78,6 +80,16 @@ class Utils {
 
       taskTime(time ,context);
 
+    } else if (text.contains(Command.hour)) {
+      final hour = _getTextAfterCommand(text: text, command: Command.hour);
+
+      taskHour(hour ,context);
+
+    } else if (text.contains(Command.minutes)) {
+      final minutes = _getTextAfterCommand(text: text, command: Command.minutes);
+
+      taskMinutes(minutes ,context);
+
     } else if (text.contains(Command.category)) {
       final category1 = _getTextAfterCommand(text: text, command: Command.category);
 
@@ -98,9 +110,12 @@ class Utils {
 
       setTheme(context);
 
-    } else {
-      AISpeak.speak("Sorry i didn't get that"); 
     }
+    //  else {
+    //   Future.delayed(Duration(seconds: 10), () {
+    //     AISpeak.speak("Listening..."); 
+    //   });
+    // }
   }
 
   static String _getTextAfterCommand({
@@ -125,8 +140,10 @@ class Utils {
   }
 
   static Future openBackup(BuildContext context) async {
+      speech.stop();
       Navigator.push(
       context, MaterialPageRoute(builder: (context) => backupTask()));
+      // Navigator.pushNamed(context, '/backupTask');
   }
 
   static Future homepage(BuildContext context) async {
@@ -159,6 +176,18 @@ class Utils {
 
   }
 
+  static Future taskHour(String hour, BuildContext context) async {
+    AISpeak.speak("adding hour ${hour}"); 
+    hr = hour;
+    
+  }
+
+  static Future taskMinutes(String minutes, BuildContext context) async {
+    AISpeak.speak("adding minutes ${minutes}"); 
+    timeController.text = hr + ":" + minutes;
+    
+  }
+
   static Future taskCategory(String category, BuildContext context) async {
     if (category == 'work') {
       globalCategory = 'Work';
@@ -181,6 +210,9 @@ class Utils {
 
   static Future saveTask(BuildContext context) async {
     addVoiceTask();
+    Future.delayed(Duration(seconds: 1,), (){
+      AISpeak.speak("please restart app to see new task"); 
+   });
   }
 
 }

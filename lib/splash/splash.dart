@@ -47,31 +47,31 @@ class Splash extends StatefulWidget {
            Container(
 
         child: //Icon(Icons.radio, size: 250, color: Colors.white,),
-        Image.asset('assets/logo.png', width:150,height:150),
+        Image.asset('assets/logo2.png', width:150,height:150),
         ),
-           const Padding(
+          Padding(
              padding: EdgeInsets.only(top: 10),
-           child: Text('ToDo',
+           child: Text('Evoke',
                textAlign: TextAlign.center,
                overflow: TextOverflow.ellipsis,
                style: TextStyle(
                fontFamily: "BrandonBI",
                fontSize: 35,
-               color: Colors.blueGrey,
+               color: Theme.of(context).hintColor,
              ),)
            ),
       ],
         ),
       ),
       ),
-      bottomSheet: Container(color: Theme.of(context).scaffoldBackgroundColor,
-        child: 
+      // bottomSheet: Container(color: Theme.of(context).scaffoldBackgroundColor,
+      //   child: 
 
-      Row(mainAxisAlignment: MainAxisAlignment.center,
-        children:  [ 
-        Text("from - \n ", textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor,fontFamily: 'BrandonL'))]),
+      // Row(mainAxisAlignment: MainAxisAlignment.center,
+      //   children:  [ 
+      //   Text("from - \n ", textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor,fontFamily: 'BrandonL'))]),
 
-        ),
+      //   ),
     );
 }
   getTheme() {

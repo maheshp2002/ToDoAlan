@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/AI/AI.dart';
+import 'package:todoalan/AI/AI/API.dart';
+import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -18,15 +20,24 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 
 
 
 //global variables................................................................................................
-late bool? isDark;
-late bool? isNotificationSound;
-late int? NavBartheme;
-late List<Color> navColor;
+
+//for main.dart
+  late bool? isDark;
+  late bool? isNotificationSound;
+  late int? NavBartheme;
+  late List<Color> navColor;
+
+//for AI
+  String current_page = 'homepage';
+  bool isEnable = false;
+  SharedPreferences? prefs1;
+
 
 class homepage extends StatefulWidget {
 
@@ -38,9 +49,6 @@ class homepage extends StatefulWidget {
   homepageState createState() => homepageState();
 }
 
-//global variables..................................................................................................
-  bool isEnable = false;
-  SharedPreferences? prefs1;
   
 class homepageState extends State<homepage> {
 
@@ -53,9 +61,10 @@ class homepageState extends State<homepage> {
   bool isLoading = false;
   bool isAlanActive = false;
   FlutterTts flutterTts = FlutterTts();
-  bool isNotificationCalled = true;
+  //bool isNotificationCalled = true;
   User? user = FirebaseAuth.instance.currentUser;
-
+  String text = '';
+  bool isListening = false;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
@@ -100,6 +109,7 @@ class homepageState extends State<homepage> {
 
     NotificationApi.init(initScheduled: true);
     listenNotifications();
+    //onReceivedNotification();
     tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
@@ -116,18 +126,27 @@ class homepageState extends State<homepage> {
 void listenNotifications() =>
             NotificationApi.onNotifications.stream.listen(onClickedNotification);
 
+// void onReceivedNotification() async{
+//         NotificationApi.selectNotificationStream.stream.listen(
+//           //(data) async{
+//           await flutterTts.speak("data.toString()") 
+//           //print("#########################################");
+//          // }
+//         );
+// }
+
 
 void onClickedNotification(String? payload) async{
   isNotificationSound == true 
-  ? isNotificationCalled 
+ // ? isNotificationCalled 
   ? await flutterTts.speak(payload.toString()) 
-  : debugPrint("################################ false")
+  //: debugPrint("################################ false")
   : debugPrint("################################disabled");
   
-  await flutterTts.stop();
-  setState(() {
-    isNotificationCalled = false;
-  });
+ // await flutterTts.stop();
+  // setState(() {
+  //   isNotificationCalled = false;
+  // });
 
 }      
 
@@ -142,7 +161,31 @@ void onClickedNotification(String? payload) async{
       alignment: Alignment.bottomLeft,
       color:  Theme.of(context).scaffoldBackgroundColor,
       height: 50,
-      child: PersistentWidget(),
+      child:   Row(mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+    AvatarGlow(
+    animate: isListening,
+    endRadius: 35,
+    glowColor: Color.fromARGB(255, 255, 17, 1),
+    child: FloatingActionButton(
+    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: toggleRecording,
+    ),
+    ),  
+    Container(
+    width: 100,
+    height: 300,
+    child: SingleChildScrollView(
+    reverse: true,  
+    child:
+    SubstringHighlight(
+    text: text,
+    terms: Command.all,
+    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    ))),
+    ],),
     ) : null,
     floatingActionButton:   GestureDetector(onLongPress: () { 
       Permission.microphone;
@@ -592,6 +635,31 @@ makeListTile(Todo todo, index) {
             
   }
 
+   Future toggleRecording() => SpeechApi().toggleRecording(
+        onResult: (text) => setState(() {
+          setState(() {
+            isListening = true;
+          });
+          this.text = text;
+          Future.delayed(Duration(milliseconds: 1), () {
+            Utils().scanText(text, context);
+          });
+          Future.delayed(Duration(milliseconds: 10), () {
+          setState(() {
+            isListening = false;
+          });
+          });
+        }),
+        onListening: (isListening) {
+          setState(() => this.isListening = isListening);
+         // print("####################################" + isListening.toString());
+          // if (!isListening) {
+          //   Future.delayed(Duration(seconds: 5), () {
+          //     Utils().scanText(text, context);
+          //   });
+          // }
+        },
+      );
 //delete item.......................................................................................................
   delete(Todo todo) {
     return showDialog(
@@ -776,34 +844,18 @@ makeListTile(Todo todo, index) {
 
 } 
 
-// class HomePage extends StatefulWidget {
+// class BaseWidget extends StatelessWidget {
+//   final Widget child;
+//   const BaseWidget({required this.child});  
 //   @override
-//   _HomePageState createState() => _HomePageState();
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       bottomSheet: PersistentWidget(),
+//       body: Column(
+//         children: [
+//           Expanded(child: child),
+//         ],
+//       ),
+//     );
+//   }
 // }
-
-// class _HomePageState extends State<HomePage> {
-
-
-//   @override
-//   Widget build(BuildContext context) => Scaffold(
-//         body: SingleChildScrollView(
-//           reverse: true,
-//           padding: const EdgeInsets.all(30).copyWith(bottom: 150),
-//           child: 
-//         ),
-//         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-//         floatingActionButton: AvatarGlow(
-//           animate: isListening,
-//           endRadius: 75,
-//           glowColor: Theme.of(context).primaryColor,
-//           child: FloatingActionButton(
-//             child: Icon(),
-//             onPressed: toggleRecording,
-//           ),
-//         ),
-//       );
-
-
-// }
-
-

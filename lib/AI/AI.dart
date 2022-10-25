@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:avatar_glow/avatar_glow.dart';
-import 'package:todoalan/AI/API.dart';
-import 'package:todoalan/AI/utils.dart';
+
 
 class SubstringHighlight extends StatelessWidget {
   final String text;
@@ -53,52 +51,62 @@ class SubstringHighlight extends StatelessWidget {
   }
 }
 
-class PersistentWidget extends StatefulWidget {
-  @override
-  PersistentState createState() => PersistentState();
-}
+// class PersistentWidget extends StatefulWidget {
+//   @override
+//   PersistentState createState() => PersistentState();
+// }
 
-class PersistentState extends State<PersistentWidget> {
-  String text = '';
-  bool isListening = false;
+// class PersistentState extends State<PersistentWidget> {
+//   String text = '';
+//   bool isListening = false;
 
-  @override
-  Widget build(BuildContext context) => Row(mainAxisAlignment: MainAxisAlignment.start,
-    children: [
-    AvatarGlow(
-    animate: isListening,
-    endRadius: 35,
-    glowColor: Color.fromARGB(255, 255, 17, 1),
-    child: FloatingActionButton(
-    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
-    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
-    onPressed: toggleRecording,
-    ),
-    ),  
-    Container(
-    width: 100,
-    height: 300,
-    child: SingleChildScrollView(
-    reverse: true,  
-    child:
-    SubstringHighlight(
-    text: text,
-    terms: Command.all,
-    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
-    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
-    ))),
-    ],);
+//   @override
+//   Widget build(BuildContext context) => Builder(
+//   builder: (context)=>
+//   Row(mainAxisAlignment: MainAxisAlignment.start,
+//     children: [
+//     AvatarGlow(
+//     animate: isListening,
+//     endRadius: 35,
+//     glowColor: Color.fromARGB(255, 255, 17, 1),
+//     child: FloatingActionButton(
+//     backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+//     child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+//     onPressed: toggleRecording,
+//     ),
+//     ),  
+//     Container(
+//     width: 100,
+//     height: 300,
+//     child: SingleChildScrollView(
+//     reverse: true,  
+//     child:
+//     SubstringHighlight(
+//     text: text,
+//     terms: Command.all,
+//     textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+//     textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+//     ))),
+//     ],));
   
-  Future toggleRecording() => SpeechApi.toggleRecording(
-        onResult: (text) => setState(() => this.text = text),
-        onListening: (isListening) {
-          setState(() => this.isListening = isListening);
-          
-          if (!isListening) {
-            Future.delayed(Duration(seconds: 1), () {
-              Utils.scanText(text, context);
-            });
-          }
-        },
-      );
-}
+
+//    Future toggleRecording() => SpeechApi().toggleRecording(
+//         onResult: (text) => setState(() {
+//           this.text = text;
+//           Future.delayed(Duration(milliseconds: 1), () {
+//             Utils().scanText(text, context);
+//           });
+//         }),
+//         onListening: (isListening) {
+//           setState(() => this.isListening = isListening);
+//          // print("####################################" + isListening.toString());
+//           // if (!isListening) {
+//           //   Future.delayed(Duration(seconds: 5), () {
+//           //     Utils().scanText(text, context);
+//           //   });
+//           // }
+//         },
+//       );
+  
+// }
+

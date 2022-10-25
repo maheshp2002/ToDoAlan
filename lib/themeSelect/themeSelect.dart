@@ -5,6 +5,10 @@ import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todoalan/AI/AI.dart';
+import 'package:todoalan/AI/AI/API.dart';
+import 'package:todoalan/AI/AI/utils.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 class themeSelect extends StatefulWidget {
   themeSelect({Key? key}) : super(key: key);
@@ -17,7 +21,9 @@ class themeSelect extends StatefulWidget {
 class _themeSelectState extends State<themeSelect> {
 
   int selectedNo = 0;
-  
+  String text = '';
+  bool isListening = false;
+
   List<Themes> themeColors = [
     Themes(url: 'assets/todoAlanTheme/colors1.png', id: 1),
     Themes(url: 'assets/todoAlanTheme/colors2.png', id: 2),
@@ -38,6 +44,36 @@ class _themeSelectState extends State<themeSelect> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
+       floatingActionButton: isEnable ? Container(
+      padding: EdgeInsets.only(left: 20),
+      alignment: Alignment.bottomLeft,
+      height: 50,
+      child:   Row(mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+    AvatarGlow(
+    animate: isListening,
+    endRadius: 35,
+    glowColor: Color.fromARGB(255, 255, 17, 1),
+    child: FloatingActionButton(
+    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: toggleRecording,
+    ),
+    ),  
+    Container(
+    width: 100,
+    height: 300,
+    child: SingleChildScrollView(
+    reverse: true,  
+    child:
+    SubstringHighlight(
+    text: text,
+    terms: Command.all,
+    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    ))),
+    ],),
+    ) : null,   
       appBar: AppBar(
         centerTitle: true,
         title:  Text(
@@ -102,6 +138,12 @@ class _themeSelectState extends State<themeSelect> {
           if (selectedNo == int.parse(themeColors[index].id.toString())){
            changeTheme(themeColors[index].id);  
           } else {
+          Fluttertoast.showToast(  
+          msg: 'Tap again to set this theme as navTheme..!',  
+          toastLength: Toast.LENGTH_LONG,  
+          gravity: ToastGravity.BOTTOM,  
+          backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+          textColor: Colors.white);   
           setState(() {
             selectedNo = int.parse(themeColors[index].id.toString());           
           });         
@@ -161,6 +203,33 @@ class _themeSelectState extends State<themeSelect> {
             ));
             
   }
+   Future toggleRecording() => SpeechApi().toggleRecording(
+    onResult: (text) => setState(() {
+      setState(() {
+        isListening = true;
+      });
+      this.text = text;
+      Future.delayed(Duration(milliseconds: 1), () {
+         Utils().scanText(text, context);
+      });
+      Future.delayed(Duration(milliseconds: 10), () {
+      setState(() {
+        isListening = false;
+      });
+      });
+    }),
+        onListening: (isListening) {
+          // setState(() {
+          //    this.isListening = speech.isListening;
+          // });
+         // print("####################################" + isListening.toString());
+          // if (!isListening) {
+          //   Future.delayed(Duration(seconds: 5), () {
+          //     Utils().scanText(text, context);
+          //   });
+          // }
+        },
+      );
 
 }
 

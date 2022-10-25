@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/AI/AI.dart';
+import 'package:todoalan/AI/AI/API.dart';
+import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
@@ -11,6 +13,7 @@ import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
@@ -47,7 +50,9 @@ class addTask extends StatefulWidget {
   final timeController = TextEditingController();
   final titleController = TextEditingController();
   final descriptionController = TextEditingController();
+  final daysController = TextEditingController();
   String globalCategory = "";
+  String hr = "";
 
   //final currentState = FieldsState("", "", "", "");
 
@@ -63,12 +68,23 @@ class addTaskState extends State<addTask> {
   addTaskState({required this.todo, required this.isEdit});
 
   SelectedColor selected = SelectedColor.Work;
-  List<Todo> list = [];
+  //List<Todo> list = [];
 
   SharedPreferences? sharedPreferences; //calling instance of sharedpreference
   
 
   //local variables........................................................................................
+  //days
+  bool Sunday = true;
+  bool Monday = true;
+  bool Tuesday = true;
+  bool Wednesday = true;
+  bool Thursday = true;
+  bool Friday = true;
+  bool Saturday = true;
+
+  String text = '';
+  bool isListening = false;
   String selectedCategory = "Work";
   bool isPickerSelected = false;
   static DateTime _eventdDate = DateTime.now();
@@ -78,6 +94,7 @@ class addTaskState extends State<addTask> {
   String minutes = now.toString().substring(10, 15);
   String _eventTime = now.toString().substring(10, 15);
   List<int> date = [1, 2, 3, 4, 5, 6, 7];
+  List<String> days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
@@ -87,18 +104,25 @@ class addTaskState extends State<addTask> {
 void initState() {
   super.initState();
   //check if is editing
-    if (todo != null) {
-      titleController.text = todo.title;
-      descriptionController.text = todo.description;
-     if(isEdit) {
-     _eventTime = timeController.text = todo.time;
-     hours = todo.time.toString().substring(0, 2);
-     minutes = todo.time.toString().substring(3, 5);   
-     isPickerSelected = true;
-     }
-      setState(() {});
-     // setVisuals();
+  if (todo != null) {
+    titleController.text = todo.title;
+    descriptionController.text = todo.description;
+
+    if(isEdit) {
+      _eventTime = timeController.text = todo.time;
+      hours = todo.time.toString().substring(0, 2);
+      minutes = todo.time.toString().substring(3, 5);   
+      isPickerSelected = true;
     }
+
+    setState(() {});
+  }
+
+  setState(() {
+    speech.stop();
+    print("###################################$speech");
+  });
+  
 }
 
 //timepicker......................................................................
@@ -124,12 +148,36 @@ if (timepick != null) {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
     return Scaffold(
-      // floatingActionButton: !isEnable ? Container(
-      // padding: EdgeInsets.only(left: 20),
-      // alignment: Alignment.bottomLeft,
-      // height: 50,
-      // child: PersistentWidget(),
-      // ) : null,
+    //   floatingActionButton: isEnable ? Container(
+    //   padding: EdgeInsets.only(left: 20),
+    //   alignment: Alignment.bottomLeft,
+    //   height: 50,
+    //   child:   Row(mainAxisAlignment: MainAxisAlignment.start,
+    // children: [
+    // AvatarGlow(
+    // animate: isListening,
+    // endRadius: 35,
+    // glowColor: Color.fromARGB(255, 255, 17, 1),
+    // child: FloatingActionButton(
+    // backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+    // child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+    // onPressed: toggleRecording,
+    // ),
+    // ),  
+    // Container(
+    // width: 100,
+    // height: 300,
+    // child: SingleChildScrollView(
+    // reverse: true,  
+    // child:
+    // SubstringHighlight(
+    // text: text,
+    // terms: Command.all,
+    // textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    // textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    // ))),
+    // ],),
+    //   ) : null,
       backgroundColor: Color.fromARGB(204, 244, 246, 253),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -155,9 +203,10 @@ if (timepick != null) {
                       ),
                       child: IconButton(
                           onPressed: () {
-                            setState(() {
-                              isEdit = false;
-                            });
+                            // setState(() {
+                            //   isEdit = false;
+                            //   current_page = 'homepage';
+                            // });
                             Navigator.of(context).pop();
                           },
                           icon: const Icon(
@@ -218,6 +267,32 @@ if (timepick != null) {
                   )
                 )
               ), 
+
+              FadeAnimation(
+                  delay: 0.4,
+                  child: GestureDetector(
+                  onTap: (){
+                    taskDays();
+                  },
+                  child:  Container(
+                  width: we * 8,
+                  //height: he * 0.12,
+                  margin: EdgeInsets.only(top: 5, left: we * 0.1, bottom: he * 0.12),
+                  child: TextFormField( 
+                    controller: daysController, 
+                    enabled: false,
+                    decoration: InputDecoration(
+                      enabledBorder: InputBorder.none,
+                      border: InputBorder.none,
+                      hintText: days.toString(),
+                      hintStyle: TextStyle(fontFamily: "BrandonL",
+                      color: Theme.of(context).scaffoldBackgroundColor),
+                    ),
+                    style: TextStyle(fontFamily: "BrandonL",
+                    color: Theme.of(context).scaffoldBackgroundColor),
+                  )
+                )
+              ),), 
 
               FadeAnimation(
                   delay: 0.4,
@@ -385,7 +460,9 @@ if (timepick != null) {
                       gravity: ToastGravity.BOTTOM,  
                       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
                       textColor: Colors.white);                               
-
+                // setState(() {
+                //   current_page = 'homepage';
+                // });
                 Navigator.pop(context, todo);
 
                 titleController.clear();
@@ -619,8 +696,249 @@ if (timepick != null) {
     );
   }
 
+  Future toggleRecording() => SpeechApi().toggleRecording(
+    onResult: (text) => setState(() {
+      setState(() {
+        isListening = true;
+      });
+      this.text = text;
+      Future.delayed(Duration(milliseconds: 1), () {
+         Utils().scanText(text, context);
+      });
+      Future.delayed(Duration(milliseconds: 10), () {
+      setState(() {
+        isListening = false;
+      });
+      });
+    }),
+    onListening: (isListening) {
+     // setState(() => this.isListening = isListening);
+      },
+  );
 
-//alan add task............................................................................................
+//date.......................................................................................................
+  taskDays() {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text("Days",textAlign: TextAlign.left,
+              style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
+              actions: [ 
+              Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Sunday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                    if (Sunday = true){
+                      setState(() {
+                        date.remove(1);
+                        days.remove("Sunday");
+                        Sunday = false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(1);
+                        days.add("Sunday");
+                        Sunday = true;
+                      });
+                    }                    
+                  },
+              ),),
+
+              SizedBox(width: 10,),
+
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Monday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                     if (Monday = true){
+                      setState(() {
+                        date.remove(2);
+                        days.remove("Monday");
+                        Monday = false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(2);
+                        days.add("Monday");
+                        Monday = true;
+                      });
+                    }                     
+                  },
+              ),),              
+              ]),    
+
+              SizedBox(height: 10,),  
+
+              Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Tuesday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                    if (Tuesday = true){
+                      setState(() {
+                        date.remove(3);
+                        days.remove("Tuesday");
+                        Tuesday = false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(3);
+                        days.add("Tuesday");
+                        Tuesday = true;
+                      });
+                    }                    
+                  },
+              ),),
+
+              SizedBox(width: 10,),
+
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Wednesday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                     if (Wednesday = true){
+                      setState(() {
+                        date.remove(4);
+                        days.remove("Wednesday");
+                        Wednesday= false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(4);
+                        days.add("Wednesday");
+                        Wednesday = true;
+                      });
+                    }                     
+                  },
+              ),),              
+              ]),    
+               
+              SizedBox(height: 10,),  
+
+              Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Thursday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                    if (Thursday = true){
+                      setState(() {
+                        date.remove(5);
+                        days.remove("Thursday");
+                        Thursday = false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(5);
+                        days.add("Thursday");
+                        Thursday = true;
+                      });
+                    }                    
+                  },
+              ),),
+
+              SizedBox(width: 10,),
+
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Friday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                     if (Friday = true){
+                      setState(() {
+                        date.remove(6);
+                        days.remove("Friday");
+                        Friday= false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(6);
+                        days.add("Friday");
+                        Friday = true;
+                      });
+                    }                     
+                  },
+              ),),              
+              ]),    
+               
+              SizedBox(height: 10,),  
+
+              Row(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              Flexible(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: StadiumBorder(),
+                  primary: Color.fromARGB(255, 169, 255, 89),
+                ),
+                child: Text("Saturday",
+                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  onPressed: () {
+                    if (Saturday = true){
+                      setState(() {
+                        date.remove(7);
+                        days.remove("Saturday");
+                        Saturday = false;
+                      });
+                    } else {
+                      setState(() {
+                        date.add(7);
+                        days.add("Saturday");
+                        Saturday = true;
+                      });
+                    }                    
+                  },
+              ),),             
+              ]),    
+               
+              SizedBox(height: 10,),  
+
+              Center(child: 
+                FlatButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                    },
+                    child: Text("Ok",
+                    style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
+                ),
+              ],
+            ));
+            
+  }
+
+//Voice add task............................................................................................
 
 //get category
 getCategory(String cat) async{
@@ -632,9 +950,8 @@ getCategory(String cat) async{
 
 
 }
-//add task via  voice
 
-
+//add task via  voice...........................................................................................
 addVoiceTask() async{
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -668,7 +985,7 @@ addVoiceTask() async{
   date: date,
   scheduledDate: DateTime.now().add(Duration(seconds: 10))
   );
-
+  
   todos.add(t); 
 
   List items = todos.map((e) => e.toJson()).toList();

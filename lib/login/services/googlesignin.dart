@@ -13,6 +13,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
@@ -234,7 +235,9 @@ SizedBox(height: 80,),
               height: 16,
             ),
 
-
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                child:
               Container(
@@ -273,8 +276,11 @@ SizedBox(height: 80,),
                       ),
                 ),
               ),
-              ), 
+              )), 
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                child:
               Container(
@@ -313,8 +319,11 @@ SizedBox(height: 80,),
                       ),
                 ),
               ),
-              ),   
+              )),   
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 10),
                child:
               Container(
@@ -353,13 +362,16 @@ SizedBox(height: 80,),
                       ),
                 ),
               ),
-              ), 
+              )), 
 
             Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
               
               SizedBox(width:20),
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Expanded(child: 
               Container(
                 width: 150,
@@ -396,10 +408,13 @@ SizedBox(height: 80,),
                       ),
                       ),
                 ),
-              )), 
+              ))), 
 
               SizedBox(width: 10,),
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Expanded(child: 
               Container(
                 width: 150,
@@ -436,7 +451,7 @@ SizedBox(height: 80,),
                       ),
                       ),
                 ),
-              )), 
+              ))), 
              
               SizedBox(width:20),
 
@@ -474,6 +489,9 @@ SizedBox(height: 80,),
 
       SizedBox(height: 20,),
 
+        FadeAnimationHorizontal(
+        delay: 0.4,
+        child: 
         SizedBox(
         height: 44.0,
         width: 120,
@@ -616,7 +634,7 @@ SizedBox(height: 80,),
               }
               },
               child: Text("ENTER", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
-              ))
+              )))
 
       ],),
     );

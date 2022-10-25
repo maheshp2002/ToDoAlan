@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-//import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
   static final onNotifications = BehaviorSubject<String?>();
+  static final StreamController<String?> selectNotificationStream =
+    StreamController<String?>.broadcast();
+  static FlutterTts flutterTts = FlutterTts();
 
 //scheduled notification.....................................................................................
 static void showScheduledNotification({
@@ -20,7 +25,7 @@ static void showScheduledNotification({
  int? ss,
  List<int>? date,
 required DateTime scheduledDate,
-} ) async =>
+}) async =>
 _notifications.zonedSchedule(
   id,
   title,
@@ -69,33 +74,36 @@ static Future _notificationDetails() async {
       //'channel description',
       importance : Importance.max ,
     ), // AndroidNotificationDetails
-    iOS : IOSNotificationDetails(),
+    iOS : DarwinNotificationDetails(),
   ) ; // NotificationDetails
 }
 
 //initialize notification.........................................................................................
 static Future init ({bool initScheduled = false}) async {
  final android = AndroidInitializationSettings('@mipmap/ic_launcher');
- final iOS = IOSInitializationSettings();
+ final iOS = DarwinInitializationSettings ();
  final settings = InitializationSettings(android: android, iOS: iOS);
- //FlutterTts flutterTts = FlutterTts();
 
 //if app is closed 
-final details = await _notifications.getNotificationAppLaunchDetails();
-if (details != null && details.didNotificationLaunchApp) {
-  onNotifications.add(details.payload);
-  // Future.delayed(Duration(seconds: 10),() async{
-  //   await flutterTts.stop();
-  // });
+//final details = await _notifications.getNotificationAppLaunchDetails();
+// if (details != null && details.didNotificationLaunchApp) {
+//   // onNotifications.add(details.payload);
+//   // await flutterTts.speak(details.payload.toString());
+//   // Future.delayed(Duration(seconds: 10),() async{
+//   //   await flutterTts.stop();
+//   // });
   
-  //await flutterTts.speak(details.payload.toString());
-}
+// }
 
  await _notifications.initialize(
     settings,
-    onSelectNotification: (payload) async {
-      onNotifications.add(payload);
-    }
+    onDidReceiveNotificationResponse: (details) async {
+      await flutterTts.speak("details.payload.toString()");
+      selectNotificationStream.add(details.payload.toString());
+    },
+    // onSelectNotification: (payload) async {
+    //   onNotifications.add(payload);
+    // }
   );
 
   if (initScheduled) {
@@ -118,8 +126,13 @@ static Future showNotification({
       title ,
       body ,
       await _notificationDetails(),
-      payload : payload,  
+      payload : payload, 
     );
+    // ).then((value) {
+    // flutterTts.speak(payload.toString()); 
+    // print("######################################");
+    // } 
+    // );
 
 //scheduled notification now.....................................................................................
 // static void showScheduledNotificationNow({

@@ -1,25 +1,28 @@
 import 'package:flutter/cupertino.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-class SpeechApi {
-  static final _speech = SpeechToText();
+SpeechToText  speech = SpeechToText();
 
-  static Future<bool> toggleRecording({
+class SpeechApi {
+
+  Future<bool> toggleRecording({
     required Function(String text) onResult,
     required ValueChanged<bool> onListening,
   }) async {
-    if (_speech.isListening) {
-      _speech.stop();
+    if (speech.isListening) {
+      speech.stop();
       return true;
     }
 
-    final isAvailable = await _speech.initialize(
-      onStatus: (status) => onListening(_speech.isListening),
+    final isAvailable = await speech.initialize(
+      onStatus: (status) {
+        onListening(speech.isListening);
+      },
       onError: (e) => print('Error: $e'),
     );
 
     if (isAvailable) {
-      _speech.listen(onResult: (value) => onResult(value.recognizedWords));
+      speech.listen(onResult: (value) => onResult(value.recognizedWords));
     }
 
     return isAvailable;

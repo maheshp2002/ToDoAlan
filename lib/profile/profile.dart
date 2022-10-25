@@ -9,7 +9,13 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/profile/deleteAccount.dart';
+import 'package:todoalan/AI/AI.dart';
+import 'package:todoalan/AI/AI/API.dart';
+import 'package:todoalan/AI/AI/utils.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:avatar_glow/avatar_glow.dart';
 
 class profileUpdates extends StatefulWidget {
   profileUpdates({Key? key}) : super(key: key);
@@ -27,7 +33,8 @@ class _profileUpdatesState extends State<profileUpdates> {
   TextEditingController weightController =  TextEditingController();
   User? user = FirebaseAuth.instance.currentUser;
   late String image;
-
+  String text = '';
+  bool isListening = false;
   
 //..........................................................................................
 Future<String> uploadFile(_image) async {
@@ -97,9 +104,61 @@ Future<String> uploadFile(_image) async {
 //........................................................................................
 
 
+
   @override
   Widget build(BuildContext context) {
+
+  Future toggleRecording() => SpeechApi().toggleRecording(
+    onResult: (text) => setState(() {
+      setState(() {
+        isListening = true;
+      });
+      this.text = text;
+      Future.delayed(Duration(milliseconds: 1), () {
+         Utils().scanText(text, context);
+      });
+      Future.delayed(Duration(milliseconds: 10), () {
+      setState(() {
+        isListening = false;
+      });
+      });
+    }),
+    onListening: (isListening) {
+     // setState(() => this.isListening = isListening);
+      },
+  );
+
   return Scaffold(
+       floatingActionButton: isEnable ? Container(
+      padding: EdgeInsets.only(left: 20),
+      alignment: Alignment.bottomLeft,
+      height: 50,
+      child:   Row(mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+    AvatarGlow(
+    animate: isListening,
+    endRadius: 35,
+    glowColor: Color.fromARGB(255, 255, 17, 1),
+    child: FloatingActionButton(
+    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
+    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: toggleRecording,
+    ),
+    ),  
+    Container(
+    width: 100,
+    height: 300,
+    child: SingleChildScrollView(
+    reverse: true,  
+    child:
+    SubstringHighlight(
+    text: text,
+    terms: Command.all,
+    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    ))),
+    ],),
+      ) : null,   
       appBar: AppBar(
         elevation: 0,
         backgroundColor: isloading ? Color(0Xff191f26) : Theme.of(context).scaffoldBackgroundColor,
@@ -177,7 +236,9 @@ SizedBox(height: 80,),
               height: 16,
             ),
 
-
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                child:
                 TextFormField(
@@ -200,8 +261,11 @@ SizedBox(height: 80,),
                   border: UnderlineInputBorder(),
                 ),
               ),
-              ), 
+              )), 
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
                child:
                 TextFormField(
@@ -225,8 +289,11 @@ SizedBox(height: 80,),
                 ),
               ),
               
-              ),   
+              )),   
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Padding(padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 10),
                child:
                 TextFormField(
@@ -249,13 +316,16 @@ SizedBox(height: 80,),
                   border: UnderlineInputBorder(),
                 ),
               ),
-              ), 
+              )), 
 
             Row(mainAxisAlignment: MainAxisAlignment.center,
             children: [
               
               SizedBox(width:20),
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Expanded(child: 
                 TextFormField(
                 cursorColor: Theme.of(context).hintColor,
@@ -277,10 +347,13 @@ SizedBox(height: 80,),
                   border: UnderlineInputBorder(),
                 ),
               ),
-              ), 
+              )), 
 
               SizedBox(width: 10,),
 
+              FadeAnimationHorizontal(
+              delay: 0.4,
+              child: 
               Expanded(child: 
                 TextFormField(
                 cursorColor: Theme.of(context).hintColor,
@@ -302,7 +375,7 @@ SizedBox(height: 80,),
                   border: UnderlineInputBorder(),
                 ),
               ),
-              ), 
+              )), 
              
               SizedBox(width:20),
 
@@ -312,6 +385,9 @@ SizedBox(height: 80,),
 
       Row(mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        FadeAnimationHorizontal(
+        delay: 0.4,
+        child: 
         SizedBox(
         height: 44.0,
         width: 120,
@@ -438,10 +514,13 @@ SizedBox(height: 80,),
               
           },
           child: Text("UPDATE", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
-          )),
+          ))),
 
         SizedBox(width: 20,),
 
+        FadeAnimationHorizontal(
+        delay: 0.4,
+        child: 
         SizedBox(
         height: 44.0,
         width: 120,
@@ -456,12 +535,13 @@ SizedBox(height: 80,),
               builder: (context) => deleteAccount(email: user!.email!, name: snapshot.data['name'])));
           },
           child: Text("DELETE", style: TextStyle(fontFamily: 'BrandonLI', color: Colors.white, fontSize: 20),)
-          ))
+          )))
         ],),
       ],);
       }}),
     );
   }
+  
   Future<void> deleteFile(String url) async {
   try {
     await FirebaseStorage.instance.refFromURL(url).delete();
@@ -495,4 +575,5 @@ Future<File> fileFromImageUrl() async {
 
     return _image;
   }
+
 }
