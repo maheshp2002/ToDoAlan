@@ -118,10 +118,10 @@ void initState() {
     setState(() {});
   }
 
-  setState(() {
-    speech.stop();
-    print("###################################$speech");
-  });
+  // setState(() {
+  //   speech.stop();
+  //   print("###################################$speech");
+  // });
   
 }
 
@@ -277,14 +277,15 @@ if (timepick != null) {
                   child:  Container(
                   width: we * 8,
                   //height: he * 0.12,
-                  margin: EdgeInsets.only(top: 5, left: we * 0.1, bottom: he * 0.12),
+                  margin: EdgeInsets.only(top: 5, left: we * 0.1, right: we * 0.1),
                   child: TextFormField( 
                     controller: daysController, 
                     enabled: false,
+                    maxLines: 2,
                     decoration: InputDecoration(
                       enabledBorder: InputBorder.none,
                       border: InputBorder.none,
-                      hintText: days.toString(),
+                      hintText: days.toString().replaceAll("[", "").replaceAll("]", ""),
                       hintStyle: TextStyle(fontFamily: "BrandonL",
                       color: Theme.of(context).scaffoldBackgroundColor),
                     ),
@@ -331,6 +332,9 @@ if (timepick != null) {
                 primary: Color.fromARGB(255, 255, 178, 89),
               ),
               onPressed: () async{
+              setState(() {
+                todo.days = days.toString().replaceAll('[', '').replaceAll(']', '');
+              });
               if (titleController.text.trim().isEmpty && descriptionController.text.trim().isEmpty){
 
                   Fluttertoast.showToast(  
@@ -397,7 +401,8 @@ if (timepick != null) {
                         'description': todo.description,
                         'time': _eventTime,
                         'category': selectedCategory,
-                        'date': date.toString(),
+                        'date': date.toString().replaceAll('[', '').replaceAll(']', ''),
+                        'days': days.toString().replaceAll('[', '').replaceAll(']', ''),
                         'id': todo.id,
                         'isSelected': false
                       });
@@ -418,6 +423,7 @@ if (timepick != null) {
                       'time': _eventTime,
                       'category': selectedCategory,
                       'date': date.toString(),
+                      'days': days.toString().replaceAll('[', '').replaceAll(']', ''),
                       'id': todo.id,
                       'isSelected': false
                     });
@@ -718,9 +724,12 @@ if (timepick != null) {
 
 //date.......................................................................................................
   taskDays() {
+
     return showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => StatefulBuilder(
+        builder: (context, StateSetter state) {
+        return AlertDialog(
               title: Text("Days",textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
               actions: [ 
@@ -730,22 +739,28 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Sunday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Sunday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Sunday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                    if (Sunday = true){
+                    if (Sunday == true){
                       setState(() {
-                        date.remove(1);
-                        days.remove("Sunday");
-                        Sunday = false;
+                        state((){
+                          date.remove(1);
+                          days.remove("Sunday");
+                          Sunday = false;
+                          //print(date);
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(1);
-                        days.add("Sunday");
-                        Sunday = true;
+                        state((){
+                          date.add(1);
+                          days.add("Sunday");
+                          Sunday = true;
+                         // print(date);
+                        });
                       });
                     }                    
                   },
@@ -757,22 +772,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Monday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Monday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Monday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                     if (Monday = true){
+                     if (Monday == true){
                       setState(() {
-                        date.remove(2);
-                        days.remove("Monday");
-                        Monday = false;
+                        state((){
+                          date.remove(2);
+                          days.remove("Monday");
+                          Monday = false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(2);
-                        days.add("Monday");
-                        Monday = true;
+                        state((){
+                          date.add(2);
+                          days.add("Monday");
+                          Monday = true;
+                        });
                       });
                     }                     
                   },
@@ -787,22 +806,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Tuesday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Tuesday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Tuesday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                    if (Tuesday = true){
+                    if (Tuesday == true){
                       setState(() {
-                        date.remove(3);
-                        days.remove("Tuesday");
-                        Tuesday = false;
+                        state((){
+                          date.remove(3);
+                          days.remove("Tuesday");
+                          Tuesday = false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(3);
-                        days.add("Tuesday");
-                        Tuesday = true;
+                        state((){
+                          date.add(3);
+                          days.add("Tuesday");
+                          Tuesday = true;
+                        });
                       });
                     }                    
                   },
@@ -814,22 +837,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Wednesday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Wednesday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Wednesday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                     if (Wednesday = true){
+                     if (Wednesday == true){
                       setState(() {
-                        date.remove(4);
-                        days.remove("Wednesday");
-                        Wednesday= false;
+                        state((){
+                          date.remove(4);
+                          days.remove("Wednesday");
+                          Wednesday= false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(4);
-                        days.add("Wednesday");
-                        Wednesday = true;
+                        state((){
+                          date.add(4);
+                          days.add("Wednesday");
+                          Wednesday = true;
+                        });
                       });
                     }                     
                   },
@@ -844,22 +871,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Thursday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Thursday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Thursday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                    if (Thursday = true){
+                    if (Thursday == true){
                       setState(() {
-                        date.remove(5);
-                        days.remove("Thursday");
-                        Thursday = false;
+                        state((){
+                          date.remove(5);
+                          days.remove("Thursday");
+                          Thursday = false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(5);
-                        days.add("Thursday");
-                        Thursday = true;
+                        state((){
+                          date.add(5);
+                          days.add("Thursday");
+                          Thursday = true;
+                        });
                       });
                     }                    
                   },
@@ -871,22 +902,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Friday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Friday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Friday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                     if (Friday = true){
+                     if (Friday == true){
                       setState(() {
-                        date.remove(6);
-                        days.remove("Friday");
-                        Friday= false;
+                        state((){
+                          date.remove(6);
+                          days.remove("Friday");
+                          Friday= false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(6);
-                        days.add("Friday");
-                        Friday = true;
+                        state((){
+                          date.add(6);
+                          days.add("Friday");
+                          Friday = true;
+                        });
                       });
                     }                     
                   },
@@ -901,22 +936,26 @@ if (timepick != null) {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: StadiumBorder(),
-                  primary: Color.fromARGB(255, 169, 255, 89),
+                  primary: Saturday ? Color.fromARGB(255, 169, 255, 89) : Colors.grey.withOpacity(0.5),
                 ),
                 child: Text("Saturday",
-                  style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 20)),
+                  style: TextStyle(color: Saturday ? Colors.white : Colors.black, fontFamily: 'BrandonBI', fontSize: 20)),
                   onPressed: () {
-                    if (Saturday = true){
+                    if (Saturday == true){
                       setState(() {
-                        date.remove(7);
-                        days.remove("Saturday");
-                        Saturday = false;
+                        state((){
+                          date.remove(7);
+                          days.remove("Saturday");
+                          Saturday = false;
+                        });
                       });
                     } else {
                       setState(() {
-                        date.add(7);
-                        days.add("Saturday");
-                        Saturday = true;
+                        state((){
+                          date.add(7);
+                          days.add("Saturday");
+                          Saturday = true;
+                        });
                       });
                     }                    
                   },
@@ -934,7 +973,9 @@ if (timepick != null) {
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 ),
               ],
-            ));
+            );
+      })
+    );
             
   }
 
@@ -961,7 +1002,7 @@ addVoiceTask() async{
   int id = Random().nextInt(2147483637);
   List<int> date = [1, 2, 3, 4, 5, 6, 7];
   User? user = FirebaseAuth.instance.currentUser;
-  Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+  Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
 
   String hourstext = timeController.text.toString().substring(0, 2);
   String minutestext = timeController.text.toString().substring(3, 5);   
@@ -971,6 +1012,7 @@ addVoiceTask() async{
   t.description = descriptionController.text;
   t.time = timeController.text;
   t.category = globalCategory;
+  t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
 
   //setting scheduled notification
                           

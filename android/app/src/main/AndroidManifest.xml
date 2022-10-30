@@ -23,6 +23,7 @@
    
    <application
         android:label="Evoke"
+        tools:replace="android:label"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -59,5 +60,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+            
+<!-- notifications -->
+        <service
+            android:label="notifications"
+            android:name="dk.cachet.notifications.NotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
     </application>
 </manifest>

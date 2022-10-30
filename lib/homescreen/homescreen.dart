@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,7 +22,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:avatar_glow/avatar_glow.dart';
-
+import 'package:notifications/notifications.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 
 
@@ -66,12 +68,17 @@ class homepageState extends State<homepage> {
   String text = '';
   bool isListening = false;
 
+  //background task
+  List<DateTime> _events = [];
+  bool _enabled = true;
+  int _status = 0;
+
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
    
-//local variables for speech to text..................................................................................................
-
-
+//local variables for text to speech ..................................................................................................
+  late Notifications _notifications;
+  late StreamSubscription<NotificationEvent> _subscription;
 
 //initializing todo.................................................................................................
   setupTodo() async {
@@ -81,7 +88,7 @@ class homepageState extends State<homepage> {
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
       });
     }
   }
@@ -92,24 +99,15 @@ class homepageState extends State<homepage> {
     prefs!.setString(user!.email!, jsonEncode(items));
   }
 
-// //Alan button......................................................................................................
-//   setUpalan() {
-//    setState(() {
-//       isAlanActive = true;
-//     });
-//     AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
-//         buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
-//         bottomMargin: 100);
-//     AlanVoice.callbacks.add((command) => handleCmd(command.data));
-//   }
 
   @override
   void initState() {
     super.initState();
 
     NotificationApi.init(initScheduled: true);
+    initPlatformState(); //notification speak
+    //initPlatformStateForBackground(); //notification background
     listenNotifications();
-    //onReceivedNotification();
     tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
@@ -126,29 +124,67 @@ class homepageState extends State<homepage> {
 void listenNotifications() =>
             NotificationApi.onNotifications.stream.listen(onClickedNotification);
 
-// void onReceivedNotification() async{
-//         NotificationApi.selectNotificationStream.stream.listen(
-//           //(data) async{
-//           await flutterTts.speak("data.toString()") 
-//           //print("#########################################");
-//          // }
-//         );
-// }
+  void onClickedNotification(String? payload) async{
+    isNotificationSound == true 
+    ? await flutterTts.speak(payload.toString()) 
+    : debugPrint("################################disabled");
+  } 
+
+//..........................................................................................................
 
 
-void onClickedNotification(String? payload) async{
-  isNotificationSound == true 
- // ? isNotificationCalled 
-  ? await flutterTts.speak(payload.toString()) 
-  //: debugPrint("################################ false")
-  : debugPrint("################################disabled");
-  
- // await flutterTts.stop();
-  // setState(() {
-  //   isNotificationCalled = false;
-  // });
+    onStart() {
+      WidgetsFlutterBinding.ensureInitialized();
+      final service = FlutterBackgroundService();
+      // Run taks here :
+      startListening(); 
+      service.onDataReceived.listen((event) { 
+        // !IMPORTANT 
+        // must include print statement to pass null check: 
+        // other wise you get error: 
+        print(event!); 
+        // use Contain key or contain value: 
+        // for ignore null errors :  
+        // if (event.containsKey('action')) {  
+        //   String changer = 'game'; 
+        //   return; 
+        // } 
+        // startListening(); 
+        service.setNotificationInfo(
+          title: "Evoke",
+          content: "Updated at ${DateTime.now()}",
+        );
+      });
+    }
 
-}      
+//Notification speak...................................................................................................
+  Future<void> initPlatformState() async {
+    startListening();
+  }
+
+  void onData(NotificationEvent event) {
+    if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
+    {
+      String message = event.toString();
+      flutterTts.speak(message.substring(50, message.lastIndexOf(",")));
+    } else {
+      debugPrint("error");
+    }
+    // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
+     print(event);
+  }
+
+  void startListening() {
+      _notifications = new Notifications();
+      try {
+        _subscription = _notifications.notificationStream!.listen(onData);
+      } on NotificationException catch (exception) {
+        print(exception);
+      }
+  }
+
+//........................................................................................................................
+     
 
   @override
   Widget build(BuildContext context) {
@@ -508,7 +544,7 @@ void onClickedNotification(String? payload) async{
 //get value from addTask...................................................................................
   addTodo() async {
     int id = Random().nextInt(2147483637);
-    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
+    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
     Todo returnTodo = await Navigator.push(
         context, MaterialPageRoute(builder: (context) => addTask(todo: t, isEdit: false,)));
     if (returnTodo != null) {
@@ -619,7 +655,7 @@ makeListTile(Todo todo, index) {
         builder: (ctx) => AlertDialog(
               title: Text(todo.title,textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
-              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time + "\nCategory: " + todo.category, textAlign: TextAlign.left,
+              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time + "\nCategory: " + todo.category + "\nDays: " + todo.days, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 
@@ -634,7 +670,7 @@ makeListTile(Todo todo, index) {
             ));
             
   }
-
+ 
    Future toggleRecording() => SpeechApi().toggleRecording(
         onResult: (text) => setState(() {
           setState(() {
@@ -660,6 +696,7 @@ makeListTile(Todo todo, index) {
           // }
         },
       );
+ 
 //delete item.......................................................................................................
   delete(Todo todo) {
     return showDialog(
@@ -705,6 +742,7 @@ makeListTile(Todo todo, index) {
             
   }
 
+} 
 
 //alan voice commands....................................................................................................
 
@@ -842,8 +880,6 @@ makeListTile(Todo todo, index) {
 //   }
 
 
-} 
-
 // class BaseWidget extends StatelessWidget {
 //   final Widget child;
 //   const BaseWidget({required this.child});  
@@ -859,3 +895,61 @@ makeListTile(Todo todo, index) {
 //     );
 //   }
 // }
+
+
+// comment code..................................................................................
+
+//import 'package:background_fetch/background_fetch.dart';
+
+
+  // Future<void> initPlatformStateForBackground() async {
+  // // Configure BackgroundFetch.
+  // var status = await BackgroundFetch.configure(BackgroundFetchConfig(
+  // minimumFetchInterval: 15,
+  // forceAlarmManager: false,
+  // stopOnTerminate: false,
+  // startOnBoot: true,
+  // enableHeadless: true,
+  // requiresBatteryNotLow: false,
+  // requiresCharging: false,
+  // requiresStorageNotLow: false,
+  // requiresDeviceIdle: false,
+  // requiredNetworkType: NetworkType.NONE,
+  // ), _onBackgroundFetch, _onBackgroundFetchTimeout);
+  // print('[BackgroundFetch] configure success: $status');
+  // initState();
+  // // Schedule backgroundfetch for the 1st time it will execute with 1000ms delay.
+  // // where device must be powered (and delay will be throttled by the OS).
+  // BackgroundFetch.scheduleTask(TaskConfig(
+  // taskId: 'com.evoke.task',
+  // delay: 1000,
+  // periodic: false,
+  // stopOnTerminate: false,
+  // enableHeadless: true
+  // ));
+  // }
+  
+  // void _onBackgroundFetchTimeout(String taskId) {
+  // print("[BackgroundFetch] TIMEOUT: $taskId");
+  // BackgroundFetch.finish(taskId);
+  // }
+
+  // void _onBackgroundFetch(String taskId) async {
+  // if(taskId == 'com.evoke.task') {
+  // print('[BackgroundFetch] Event received');
+
+  // initState();
+  // }
+  // }
+
+
+//   //Alan button......................................................................................................
+//   setUpalan() {
+//    setState(() {
+//       isAlanActive = true;
+//     });
+//     AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
+//         buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
+//         bottomMargin: 100);
+//     AlanVoice.callbacks.add((command) => handleCmd(command.data));
+//   }

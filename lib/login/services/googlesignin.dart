@@ -126,7 +126,7 @@ Future<String> uploadFile(_image) async {
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
       });
     }
   }
@@ -369,10 +369,10 @@ SizedBox(height: 80,),
               
               SizedBox(width:20),
 
+              Expanded(child: 
               FadeAnimationHorizontal(
               delay: 0.4,
               child: 
-              Expanded(child: 
               Container(
                 width: 150,
                 height: 60,
@@ -408,14 +408,14 @@ SizedBox(height: 80,),
                       ),
                       ),
                 ),
-              ))), 
+              )),
+              ), 
 
               SizedBox(width: 10,),
-
+              Expanded(child: 
               FadeAnimationHorizontal(
               delay: 0.4,
               child: 
-              Expanded(child: 
               Container(
                 width: 150,
                 height: 60,
@@ -666,9 +666,9 @@ Future<File> fileFromImageUrl() async {
   createTask(int height, int weight, int age) async{
 
     //local variables
-    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', category: '');
-    Todo t1 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', category: '');
-    Todo t2 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', category: '');
+    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+    Todo t1 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+    Todo t2 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
     double _result;
 
 //calculate BMI..................................................................................
@@ -694,6 +694,7 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 5am";
         t.time = "21:30";
+        t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
       //setting scheduled notification
@@ -726,6 +727,7 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 6am";
         t.time = "21:00";
+        t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
       //setting scheduled notification
@@ -757,6 +759,7 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 7am";
         t.time = "20:00";
+        t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
       //setting scheduled notification
@@ -795,6 +798,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -823,6 +827,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1 hour";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -857,6 +862,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1:30 hours";
         t1.time = "06:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -886,6 +892,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1:30 hour";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -920,6 +927,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 2 hours";
         t1.time = "06:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -947,6 +955,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1:30 hour";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -987,6 +996,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:30";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1015,6 +1025,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -1044,6 +1055,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1 hours";
         t1.time = "06:30";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1071,6 +1083,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -1100,6 +1113,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 1:30 hours";
         t1.time = "06:30";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1128,6 +1142,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 1 hour";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -1166,6 +1181,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1193,6 +1209,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 15 minutes";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -1222,6 +1239,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1249,6 +1267,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 15 minutes";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification
@@ -1278,6 +1297,7 @@ Future<File> fileFromImageUrl() async {
         t1.title = "Workout";
         t1.description = "Time for excersise, \nDuration: 30 minutes";
         t1.time = "07:00";
+        t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
       });
       //setting scheduled notification
@@ -1305,6 +1325,7 @@ Future<File> fileFromImageUrl() async {
         t2.title = "Evening workout";
         t2.description = "Time for excersise. \nDuration: 30 minutes";
         t2.time = "17:00";
+        t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
       });
       //setting scheduled notification

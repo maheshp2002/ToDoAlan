@@ -98,7 +98,7 @@ static Future init ({bool initScheduled = false}) async {
  await _notifications.initialize(
     settings,
     onDidReceiveNotificationResponse: (details) async {
-      await flutterTts.speak("details.payload.toString()");
+      //await flutterTts.speak("details.payload.toString()");
       selectNotificationStream.add(details.payload.toString());
     },
     // onSelectNotification: (payload) async {

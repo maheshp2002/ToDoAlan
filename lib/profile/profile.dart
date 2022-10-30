@@ -323,10 +323,10 @@ SizedBox(height: 80,),
               
               SizedBox(width:20),
 
+              Expanded(child: 
               FadeAnimationHorizontal(
               delay: 0.4,
               child: 
-              Expanded(child: 
                 TextFormField(
                 cursorColor: Theme.of(context).hintColor,
                 controller: heightController,
@@ -351,10 +351,10 @@ SizedBox(height: 80,),
 
               SizedBox(width: 10,),
 
+              Expanded(child: 
               FadeAnimationHorizontal(
               delay: 0.4,
               child: 
-              Expanded(child: 
                 TextFormField(
                 cursorColor: Theme.of(context).hintColor,
                 controller: weightController,

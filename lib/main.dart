@@ -1,6 +1,5 @@
 
 import 'dart:async';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,20 +9,20 @@ import 'package:todoalan/login/login.dart';
 import 'package:todoalan/splash/splash.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:picovoice_flutter/picovoice_manager.dart';
-import 'package:picovoice_flutter/picovoice_error.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:rhino_flutter/rhino.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
-//initialize firebase app during notification
+
+
+//initialize firebase app during notification.................................................................
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print('A bg message just showed up : ${message.messageId}');
 }
 
+
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  // WidgetsFlutterBinding.ensureInitialized();
+
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -39,6 +38,8 @@ Future<void> main() async{
     badge: true,
     sound: true,
   );
+
+  FlutterBackgroundService.initialize(homepageState().onStart);
   
   runApp(RestartWidget(
   child:  MyApp()));
@@ -61,11 +62,6 @@ class MyAppState extends State<MyApp> {
   /// 1) our themeMode "state" field
   ThemeMode _themeMode = ThemeMode.system;
 
-  PicovoiceManager? _picovoiceManager;
-  bool _listeningForCommand = false;
-  bool _isError = false;
-  String _errorMessage = "";
-  final String accessKey = "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
   
  @override
   void initState() {
@@ -99,110 +95,15 @@ class MyAppState extends State<MyApp> {
     });
     return getUserEmail;}
 
-//pico voice initilize
-  void _initPicovoice() async {
-    String platform = Platform.isAndroid
-        ? "android"
-        : Platform.isIOS
-            ? "ios"
-            : throw PicovoiceRuntimeException(
-                "This demo supports iOS and Android only.");
-    String keywordAsset = "assets/$platform/pico clock_$platform.ppn";
-    String contextAsset = "assets/$platform/clock_$platform.rhn";
-
-    try {
-      _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
-          _wakeWordCallback, contextAsset, _inferenceCallback,
-          processErrorCallback: _errorCallback);
-      await _picovoiceManager?.start();
-    } on PicovoiceInvalidArgumentException catch (ex) {
-      _errorCallback(PicovoiceInvalidArgumentException(
-          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
-    } on PicovoiceActivationException {
-      _errorCallback(
-          PicovoiceActivationException("AccessKey activation error."));
-    } on PicovoiceActivationLimitException {
-      _errorCallback(PicovoiceActivationLimitException(
-          "AccessKey reached its device limit."));
-    } on PicovoiceActivationRefusedException {
-      _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
-    } on PicovoiceActivationThrottledException {
-      _errorCallback(PicovoiceActivationThrottledException(
-          "AccessKey has been throttled."));
-    } on PicovoiceException catch (ex) {
-      _errorCallback(ex);
-    }
-  }
-
-  void _wakeWordCallback() {
-    setState(() {
-      _listeningForCommand = true;
-    });
-  }
-
-void _inferenceCallback(RhinoInference inference) {  
-  if (inference.isUnderstood!) {
-    Map<String, String> slots = inference.slots!;
-    if (inference.intent == 'navigate') {
-      _navigate(slots);
-    }
-    // } else if (inference.intent == 'timer') {
-    //   _performTimerCommand(slots);
-    // } else if (inference.intent == 'setTimer') {
-    //   _setTimer(slots);
-    // } else if (inference.intent == 'alarm') {
-    //   _performAlarmCommand(slots);
-    // } else if (inference.intent == 'setAlarm') {
-    //   _setAlarm(slots);
-    // } else if (inference.intent == 'stopwatch') {
-    //   _performStopwatchCommand(slots);
-    // } else if (inference.intent == 'availableCommands') {
-    //   _showAvailableCommands();
-    // }
-  } else {
-      Fluttertoast.showToast(
-          msg: "Didn't understand command!\n" +
-              "Say 'PicoClock, what can I say?' to see a list of example commands",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Color.fromRGBO(55, 125, 255, 1),
-          textColor: Colors.white,
-          fontSize: 16.0);
-  }
-  setState(() {
-    _listeningForCommand = false;
-  });
-}
-
-_navigate(Map<String, String> slots){
-
-}
-
-  void _errorCallback(PicovoiceException error) {
-    setState(() {
-      _isError = true;
-      _errorMessage = error.message!;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'ToDo',
+      title: 'Evoke',
       theme: ThemeData(),
       darkTheme: ThemeData.dark(),
       themeMode: _themeMode, // 2) ← ← ← use "state" field here //////////////
-      // builder: (context, child) => BaseWidget(child: child!),
-      // initialRoute: '/',
-      // routes: <String, WidgetBuilder>{
-      //   '/': (context) => Splash(),
-      //   '/backupTask': (context) =>  backupTask(),
-      //   '/HidenDrawer': (context) => HidenDrawer(animationtime: 0.8,),
-      // },
-     home: 
-      Splash(),
+     home: Splash(),
     );
   }
 
@@ -332,3 +233,134 @@ List<Color> colors11 = [Color(0xFFEC00BC), Color(0xFF04123F)];
 List<Color> colors12 = [Color(0xFFECBC), Color(0xFFC9F0E4)];
 List<Color> colors13 = [Color(0xFFA0B5EB), Color(0xFF3957ED)];
 List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];
+
+
+
+//Comment code.........................................................................................
+
+//import 'package:background_fetch/background_fetch.dart';
+//import 'dart:io';
+//import 'package:rhino_flutter/rhino.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
+// import 'package:picovoice_flutter/picovoice_error.dart';
+// import 'package:picovoice_flutter/picovoice_manager.dart';
+
+
+  // Register to receive BackgroundFetch events after app is terminated.
+  // Requires {stopOnTerminate: false, enableHeadless: true}
+  // BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+  
+  // PicovoiceManager? _picovoiceManager;
+  // bool _listeningForCommand = false;
+  // bool _isError = false;
+  // String _errorMessage = "";
+  // final String accessKey = "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
+
+// //pico voice initilize
+//   void _initPicovoice() async {
+//     String platform = Platform.isAndroid
+//         ? "android"
+//         : Platform.isIOS
+//             ? "ios"
+//             : throw PicovoiceRuntimeException(
+//                 "This demo supports iOS and Android only.");
+//     String keywordAsset = "assets/$platform/pico clock_$platform.ppn";
+//     String contextAsset = "assets/$platform/clock_$platform.rhn";
+
+//     try {
+//       _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
+//           _wakeWordCallback, contextAsset, _inferenceCallback,
+//           processErrorCallback: _errorCallback);
+//       await _picovoiceManager?.start();
+//     } on PicovoiceInvalidArgumentException catch (ex) {
+//       _errorCallback(PicovoiceInvalidArgumentException(
+//           "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+//     } on PicovoiceActivationException {
+//       _errorCallback(
+//           PicovoiceActivationException("AccessKey activation error."));
+//     } on PicovoiceActivationLimitException {
+//       _errorCallback(PicovoiceActivationLimitException(
+//           "AccessKey reached its device limit."));
+//     } on PicovoiceActivationRefusedException {
+//       _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
+//     } on PicovoiceActivationThrottledException {
+//       _errorCallback(PicovoiceActivationThrottledException(
+//           "AccessKey has been throttled."));
+//     } on PicovoiceException catch (ex) {
+//       _errorCallback(ex);
+//     }
+//   }
+
+//   void _wakeWordCallback() {
+//     setState(() {
+//       _listeningForCommand = true;
+//     });
+//   }
+
+// void _inferenceCallback(RhinoInference inference) {  
+//   if (inference.isUnderstood!) {
+//     Map<String, String> slots = inference.slots!;
+//     if (inference.intent == 'navigate') {
+//       _navigate(slots);
+//     }
+//     // } else if (inference.intent == 'timer') {
+//     //   _performTimerCommand(slots);
+//     // } else if (inference.intent == 'setTimer') {
+//     //   _setTimer(slots);
+//     // } else if (inference.intent == 'alarm') {
+//     //   _performAlarmCommand(slots);
+//     // } else if (inference.intent == 'setAlarm') {
+//     //   _setAlarm(slots);
+//     // } else if (inference.intent == 'stopwatch') {
+//     //   _performStopwatchCommand(slots);
+//     // } else if (inference.intent == 'availableCommands') {
+//     //   _showAvailableCommands();
+//     // }
+//   } else {
+//       Fluttertoast.showToast(
+//           msg: "Didn't understand command!\n" +
+//               "Say 'PicoClock, what can I say?' to see a list of example commands",
+//           toastLength: Toast.LENGTH_LONG,
+//           gravity: ToastGravity.TOP,
+//           timeInSecForIosWeb: 2,
+//           backgroundColor: Color.fromRGBO(55, 125, 255, 1),
+//           textColor: Colors.white,
+//           fontSize: 16.0);
+//   }
+//   setState(() {
+//     _listeningForCommand = false;
+//   });
+// }
+
+// _navigate(Map<String, String> slots){
+
+// }
+
+//   void _errorCallback(PicovoiceException error) {
+//     setState(() {
+//       _isError = true;
+//       _errorMessage = error.message!;
+//     });
+//   }
+
+//..........................................................................................................
+
+// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
+// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
+// @pragma('vm:entry-point')
+// void backgroundFetchHeadlessTask(HeadlessTask task) async {
+//   String taskId = task.taskId;
+//   bool isTimeout = task.timeout;
+//   if (isTimeout) {
+//     // This task has exceeded its allowed running-time.  
+//     // You must stop what you're doing and immediately .finish(taskId)
+//     print("[BackgroundFetch] Headless task timed-out: $taskId");
+//     BackgroundFetch.finish(taskId);
+//     return;
+//   }  
+//   print('[BackgroundFetch] Headless event received.');
+//   // Do your work here...
+//   BackgroundFetch.finish(taskId);
+// }
+
+//..........................................................................................................

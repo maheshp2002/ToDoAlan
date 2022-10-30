@@ -64,7 +64,7 @@ class _backupTaskState extends State<backupTask> {
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
       });
     }
   }
@@ -334,16 +334,18 @@ class _backupTaskState extends State<backupTask> {
               ),
               SlidableAction(
               onPressed: (context) async {
-                Todo t = Todo(id: int.parse(snapshot.data.docs[index].id), title: '', description: '', isCompleted: false, time: '', category: '');
+                Todo t = Todo(id: int.parse(snapshot.data.docs[index].id), title: '', description: '', isCompleted: false, time: '', days: '', category: '');
 
                 setState(() {
                   t.id = int.parse(snapshot.data.docs[index].id);
                   t.title = snapshot.data.docs[index]['title'];
                   t.description = snapshot.data.docs[index]['description'];
                   t.time = snapshot.data.docs[index]['time'];
+                  t.days = snapshot.data.docs[index]['days'];
                   t.category = snapshot.data.docs[index]['category'];
                 });
 
+                //List<int> date = snapshot.data.docs[index]['date'];
                 List<int> date = [1, 2, 3, 4, 5, 6, 7];
                 String hours = t.time.toString().substring(0, 2);
                 String minutes = t.time.toString().substring(3, 5);
@@ -389,9 +391,9 @@ class _backupTaskState extends State<backupTask> {
               icon: Icons.alarm,
               ),
               ],
-              ),
+            ),
             child: makeListTile(snapshot.data.docs[index].id, snapshot.data.docs[index]['category'], snapshot.data.docs[index]['title'],
-            snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['isSelected'],),
+            snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['days'], snapshot.data.docs[index]['isSelected'],),
              ));
            })
             ]);           
@@ -402,7 +404,7 @@ class _backupTaskState extends State<backupTask> {
 
 //make listview of task items................................................................................
 
-makeListTile(String id, category, title, description, time, isSelected) {
+makeListTile(String id, category, title, description, time, days, isSelected) {
     Color color = Colors.red;
     if (category == "Work") {
       color = const Color(0xFFAC05FF);
@@ -421,7 +423,7 @@ makeListTile(String id, category, title, description, time, isSelected) {
     var he = MediaQuery.of(context).size.height;
 
     return GestureDetector(
-    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category,) : debugPrint("hi"),
+    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category, days) : debugPrint("hi"),
     child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -530,14 +532,14 @@ makeListTile(String id, category, title, description, time, isSelected) {
 
 
 //detailed view.......................................................................................................
-  detailTask(String title, description, time, category) {
+  detailTask(String title, description, time, category, days) {
     return showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
               title: Text(title,textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
               content: Text("Description: " + description + "\n" + "Reminder time: " + time
-              + "\nCategory: " + category, textAlign: TextAlign.left,
+              + "\nCategory: " + category  + "\Days: " + days, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 
