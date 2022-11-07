@@ -69,6 +69,7 @@ class _UserdetailsState extends State<Userdetails> {
   TextEditingController ageController =  TextEditingController();
   TextEditingController heightController =  TextEditingController();
   TextEditingController weightController =  TextEditingController();
+  final collectionReference = FirebaseFirestore.instance;
   User? user = FirebaseAuth.instance.currentUser;
   SharedPreferences? prefs;
   bool status = false;
@@ -88,7 +89,7 @@ Future<String> uploadFile(_image) async {
 
   Future<void> saveImages(File _image) async {
                
-              //_image.forEach((image) async {
+              bool isEdited = false;
               String imageURL = await uploadFile(_image);
 
 
@@ -101,13 +102,49 @@ Future<String> uploadFile(_image) async {
                 'weight': weightController.text.trim(),
                 'age': ageController.text.trim(),
               });
+
+              // tasklengths default value
+              try{
+                await collectionReference.collection("Users").doc(user!.email!)
+                .collection("taskLength").doc('task').get()
+                .then((snapshot) {
+                  setState(() {
+                    isEdited = snapshot.get('isEdited');                
+                  });
+                });
+              } catch(e) {
+                debugPrint("error");
+              }
+
+              try{
+                if (isEdited == true) {
+                  debugPrint("true");
+                } else {
+                  FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                  .collection("taskLength").doc("task").set({
+                      'Work': 0,
+                      'Personal': 0,
+                      'Sports': 0,
+                      'Education': 0,
+                      'Medical': 0,
+                      'Others': 0,
+                      'isEdited': true,
+                    });
+                }
+              } catch(e) {
+                Fluttertoast.showToast(  
+                msg: 'No network..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                textColor: Colors.white); 
+              }
 }
 //..........................................................................................
 // Image Picker
   File _image = File(''); // Used only if you need a single picture
   late bool? Validation;
   bool isloading = false;
-  final collectionReference = FirebaseFirestore.instance;
 
   @override
   void initState(){

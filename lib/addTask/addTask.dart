@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todoalan/AI/AI.dart';
 import 'package:todoalan/AI/AI/API.dart';
 import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
@@ -13,7 +12,8 @@ import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
-import 'package:avatar_glow/avatar_glow.dart';
+// import 'package:todoalan/AI/AI.dart';
+// import 'package:avatar_glow/avatar_glow.dart';
 
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
@@ -85,8 +85,8 @@ class addTaskState extends State<addTask> {
 
   String text = '';
   bool isListening = false;
-  String selectedCategory = "Work";
   bool isPickerSelected = false;
+  String selectedCategory = "Work";
   static DateTime _eventdDate = DateTime.now();
   User? user = FirebaseAuth.instance.currentUser;
   static var now =  TimeOfDay.fromDateTime(DateTime.parse(_eventdDate.toString()));
@@ -332,13 +332,23 @@ if (timepick != null) {
                 primary: Color.fromARGB(255, 255, 178, 89),
               ),
               onPressed: () async{
+               
+               try{
+
+                //no of task
+                await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                  .collection("taskLength").doc('task').update({
+                  selectedCategory: FieldValue.increment(1),
+                });
+
+
               setState(() {
                 todo.days = days.toString().replaceAll('[', '').replaceAll(']', '');
               });
               if (titleController.text.trim().isEmpty && descriptionController.text.trim().isEmpty){
 
                   Fluttertoast.showToast(  
-                  msg: 'Please make sure all fields are filled ..!',  
+                  msg: 'Please make sure all fields are filled..!',  
                   toastLength: Toast.LENGTH_LONG,  
                   gravity: ToastGravity.BOTTOM,  
                   backgroundColor: Color.fromARGB(255, 248, 17, 0),  
@@ -427,6 +437,7 @@ if (timepick != null) {
                       'id': todo.id,
                       'isSelected': false
                     });
+
                   }catch(e) {
                     Fluttertoast.showToast(  
                     msg: 'Unable to backup data, no network connection..!',  
@@ -479,6 +490,16 @@ if (timepick != null) {
                   isEdit = false;
                 });
               }
+
+              } catch(e) {
+                Fluttertoast.showToast(  
+                msg: 'No network..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                textColor: Colors.white); 
+              }
+
               },
               child: Text("Add Task", style: TextStyle(
                fontFamily: "BrandonLI",

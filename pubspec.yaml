@@ -47,7 +47,7 @@ dev_dependencies:
   google_sign_in: ^5.4.1
   firebase_storage: ^10.3.8
   firestore_search: ^0.1.9
-  firebase_messaging: ^13.1.0
+  # firebase_messaging: ^13.1.0
 
   #task
   shared_preferences: ^2.0.15
@@ -88,9 +88,10 @@ dev_dependencies:
   timezone: ^0.9.0
   flutter_local_notifications: ^12.0.2
   flutter_native_timezone: ^2.0.0
-  background_fetch: ^1.1.2
-  flutter_background_service: ^0.1.7
+  flutter_foreground_task: ^3.10.0
   
+  # logger: ^1.1.0
+  # workmanager: ^0.4.1
   #flutter_local_notifications: ^9.1.5
   #timezone: ^0.8.0
 

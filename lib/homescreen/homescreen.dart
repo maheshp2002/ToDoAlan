@@ -1,30 +1,32 @@
-import 'dart:convert';
 import 'dart:math';
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:isolate';
+import 'dart:convert';
+import 'package:todoalan/main.dart';
 import 'package:todoalan/AI/AI.dart';
+import 'package:flutter/material.dart';
 import 'package:todoalan/AI/AI/API.dart';
 import 'package:todoalan/AI/AI/utils.dart';
+import 'package:todoalan/addTask/ToDo.dart';
+import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:todoalan/homescreen/wish.dart';
+import 'package:todoalan/addTask/addTask.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:notifications/notifications.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:todoalan/NotificationClass/notificationClass.dart';
-import 'package:todoalan/addTask/ToDo.dart';
-import 'package:todoalan/addTask/addTask.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:todoalan/homescreen/wish.dart';
-import 'package:todoalan/main.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:avatar_glow/avatar_glow.dart';
-import 'package:notifications/notifications.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
+import 'package:todoalan/NotificationClass/notificationClass.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 //global variables................................................................................................
@@ -34,12 +36,16 @@ import 'package:flutter_background_service/flutter_background_service.dart';
   late bool? isNotificationSound;
   late int? NavBartheme;
   late List<Color> navColor;
+  
 
 //for AI
-  String current_page = 'homepage';
+  // String current_page = 'homepage';
   bool isEnable = false;
   SharedPreferences? prefs1;
 
+//for noificatio speak
+  late Notifications notifications;
+  late StreamSubscription<NotificationEvent> subscription;
 
 class homepage extends StatefulWidget {
 
@@ -50,9 +56,8 @@ class homepage extends StatefulWidget {
   @override
   homepageState createState() => homepageState();
 }
-
   
-class homepageState extends State<homepage> {
+class homepageState extends State<homepage> with WidgetsBindingObserver {
 
 //local variables..................................................................................................
   SharedPreferences? prefs;
@@ -63,22 +68,16 @@ class homepageState extends State<homepage> {
   bool isLoading = false;
   bool isAlanActive = false;
   FlutterTts flutterTts = FlutterTts();
-  //bool isNotificationCalled = true;
+  ReceivePort? _receivePort;
   User? user = FirebaseAuth.instance.currentUser;
   String text = '';
   bool isListening = false;
 
-  //background task
-  List<DateTime> _events = [];
-  bool _enabled = true;
-  int _status = 0;
+  final collectionReference = FirebaseFirestore.instance;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
    
-//local variables for text to speech ..................................................................................................
-  late Notifications _notifications;
-  late StreamSubscription<NotificationEvent> _subscription;
 
 //initializing todo.................................................................................................
   setupTodo() async {
@@ -102,11 +101,11 @@ class homepageState extends State<homepage> {
 
   @override
   void initState() {
-    super.initState();
+    WidgetsBinding.instance!.addObserver(this);
 
     NotificationApi.init(initScheduled: true);
     initPlatformState(); //notification speak
-    //initPlatformStateForBackground(); //notification background
+    _initForegroundTask(); //foreground service
     listenNotifications();
     tz.initializeTimeZones();
 
@@ -118,6 +117,14 @@ class homepageState extends State<homepage> {
     });
 
     //setUpalan();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+  // _closeReceivePort();
+  WidgetsBinding.instance!.removeObserver(this);
+  super.dispose();
   }
 
 //lsiten to notification..........................................................................................
@@ -130,61 +137,139 @@ void listenNotifications() =>
     : debugPrint("################################disabled");
   } 
 
-//..........................................................................................................
-
-
-    onStart() {
-      WidgetsFlutterBinding.ensureInitialized();
-      final service = FlutterBackgroundService();
-      // Run taks here :
-      startListening(); 
-      service.onDataReceived.listen((event) { 
-        // !IMPORTANT 
-        // must include print statement to pass null check: 
-        // other wise you get error: 
-        print(event!); 
-        // use Contain key or contain value: 
-        // for ignore null errors :  
-        // if (event.containsKey('action')) {  
-        //   String changer = 'game'; 
-        //   return; 
-        // } 
-        // startListening(); 
-        service.setNotificationInfo(
-          title: "Evoke",
-          content: "Updated at ${DateTime.now()}",
-        );
-      });
-    }
-
-//Notification speak...................................................................................................
-  Future<void> initPlatformState() async {
-    startListening();
+//foreground service...............................................................................................
+  void _initForegroundTask() {
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'notification_channel_id',
+        channelName: 'Foreground Notification',
+        channelDescription:
+            'This notification appears when the foreground service is running.',
+        channelImportance: NotificationChannelImportance.LOW,
+        priority: NotificationPriority.LOW,
+        iconData: const NotificationIconData(
+          resType: ResourceType.mipmap,
+          resPrefix: ResourcePrefix.ic,
+          name: 'launcher',
+          backgroundColor: Color.fromARGB(255, 255, 178, 89),
+        ),
+        buttons: [
+          const NotificationButton(id: 'sendButton', text: 'Send'),
+          const NotificationButton(id: 'testButton', text: 'Test'),
+        ],
+      ),
+      iosNotificationOptions: const IOSNotificationOptions(
+        showNotification: true,
+        playSound: false,
+      ),
+      foregroundTaskOptions: const ForegroundTaskOptions(
+        interval: 5000,
+        isOnceEvent: false,
+        autoRunOnBoot: true,
+        allowWakeLock: true,
+        allowWifiLock: true,
+      ),
+    );
   }
 
-  void onData(NotificationEvent event) {
-    if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
-    {
-      String message = event.toString();
-      flutterTts.speak(message.substring(50, message.lastIndexOf(",")));
-    } else {
-      debugPrint("error");
-    }
-    // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
-     print(event);
+//check if app is in background........................................................
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+  super.didChangeAppLifecycleState(state);
+
+  final isBg = state == AppLifecycleState.paused;
+  final isClosed = state == AppLifecycleState.detached;
+  final isScreen = state == AppLifecycleState.resumed;
+
+  isBg || isScreen == false || isClosed == true
+      ? runTask()
+
+      : null;
   }
 
-  void startListening() {
-      _notifications = new Notifications();
-      try {
-        _subscription = _notifications.notificationStream!.listen(onData);
-      } on NotificationException catch (exception) {
-        print(exception);
-      }
-  }
 
+runTask() {
+  try{
+    isNotificationSound == true ? _startForegroundTask() : null;
+  } catch(e) {
+    _startForegroundTask();
+  }
+  
+}
 //........................................................................................................................
-     
+
+  Future<bool> _startForegroundTask() async {
+    // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
+    // onNotificationPressed function to be called.
+    //
+    // When the notification is pressed while permission is denied,
+    // the onNotificationPressed function is not called and the app opens.
+    //
+    // If you do not use the onNotificationPressed or launchApp function,
+    // you do not need to write this code.
+    if (!await FlutterForegroundTask.canDrawOverlays) {
+      final isGranted =
+          await FlutterForegroundTask.openSystemAlertWindowSettings();
+      if (!isGranted) {
+        debugPrint('SYSTEM_ALERT_WINDOW permission denied!');
+        return false;
+      }
+    }
+
+    // You can save data using the saveData function.
+    await FlutterForegroundTask.saveData(key: 'customData', value: 'hello');
+
+    bool reqResult;
+    if (await FlutterForegroundTask.isRunningService) {
+      reqResult = await FlutterForegroundTask.restartService();
+    } else {
+      reqResult = await FlutterForegroundTask.startService(
+        notificationTitle: 'Foreground Service is running',
+        notificationText: 'Tap to return to the app',
+        callback: startCallback,
+      );
+    }
+
+    ReceivePort? receivePort;
+    if (reqResult) {
+      receivePort = await FlutterForegroundTask.receivePort;
+    }
+
+    return _registerReceivePort(receivePort);
+  }
+
+  Future<bool> _stopForegroundTask() async {
+    return await FlutterForegroundTask.stopService();
+  }
+
+  bool _registerReceivePort(ReceivePort? receivePort) {
+    _closeReceivePort();
+
+    if (receivePort != null) {
+      _receivePort = receivePort;
+      _receivePort?.listen((message) {
+        if (message is int) {
+          debugPrint('eventCount: $message');
+        } else if (message is String) {
+          if (message == 'onNotificationPressed') {
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> HidenDrawer(animationtime: 0.8,)));
+          }
+        } else if (message is DateTime) {
+          debugPrint('timestamp: ${message.toString()}');
+        }
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void _closeReceivePort() {
+    _receivePort?.close();
+    _receivePort = null;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +360,6 @@ void listenNotifications() =>
           setState(() {
             isDark = false;
           });  
-          print("dark");
           }
           }, 
           icon: Icon(isDark == true ? Icons.dark_mode_outlined
@@ -288,7 +372,9 @@ void listenNotifications() =>
       backgroundColor:  Theme.of(context).scaffoldBackgroundColor,
 
       
-      body: ListView(children: [
+      body: WithForegroundTask(
+      child:
+      ListView(children: [
 
                     FadeAnimation(
                     delay: widget.animationtime,
@@ -397,8 +483,47 @@ void listenNotifications() =>
               motion: const StretchMotion(),
               children: [
               SlidableAction(
-              onPressed: (context) {
+              onPressed: (context) async{
+              int isZero = 0;
+              try{
+                await collectionReference.collection("Users").doc(user!.email!)
+                .collection("taskLength").doc('task').get()
+                .then((snapshot) {
+                  setState(() {
+                    isZero = snapshot.get(todos[index].category);                
+                  });
+                });
+              } catch(e) {
+                debugPrint("error");
+              }
+              if (isZero > 0) {
+               try{
+                //no of task
+                await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                .collection("taskLength").doc("task").update({
+                  todos[index].category: FieldValue.increment(-1),
+                });
+
               delete(todos[index]);
+
+              } catch(e) {
+                Fluttertoast.showToast(  
+                msg: 'No network..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                textColor: Colors.white); 
+              } 
+                              
+              } else {
+                Fluttertoast.showToast(  
+                msg: 'Please be patient..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                textColor: Colors.white); 
+              }
+
               },
               backgroundColor:const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
@@ -437,8 +562,29 @@ void listenNotifications() =>
               motion: const StretchMotion(),
               children: [
               SlidableAction(
-              onPressed: (context) {
-              delete(todos[index]);
+              onPressed: (context) async{
+              int isZero = 0;
+              try{
+                await collectionReference.collection("Users").doc(user!.email!)
+                .collection("taskLength").doc('task').get()
+                .then((snapshot) {
+                  setState(() {
+                    isZero = snapshot.get(todos[index].category);                
+                  });
+                });
+                } catch(e) {
+                  debugPrint("error");
+                }
+                if (isZero > 0) {
+                  delete(todos[index]);      
+                } else {
+                  Fluttertoast.showToast(  
+                  msg: 'Please be patient..!',  
+                  toastLength: Toast.LENGTH_LONG,  
+                  gravity: ToastGravity.BOTTOM,  
+                  backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                  textColor: Colors.white); 
+                }   
               },
               backgroundColor:const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
@@ -474,71 +620,135 @@ void listenNotifications() =>
             )           
         ))
         )),
-    ]));
+    ])));
   }
 
 //build category...........................................................................................
-  Widget _buildCategories(
-      context, String title, Color lineProgress, int numbertask) {
+  Widget _buildCategories(context, String title, Color lineProgress, int numbertask) {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
 
-    return GestureDetector(
-    onTap: ()async{
-      if (!isCategory) {
-        setState(() {
-          isCategory = true;
-          catName = title;
-        });
-      } else {
-        setState(() {
-          isCategory = false;
-          catName = "";
-        });
-      }
-    },
-    child: Card(
-      margin: const EdgeInsets.only(left: 23),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.2),
-      child: Container(
-        width: we * 0.5,
-        height: he * 0.1,
-        margin: const EdgeInsets.only(
-          top: 25,
-          left: 14,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "$numbertask task",
-              style: TextStyle(color: Colors.red),
-            ),
-            SizedBox(
-              height: he * 0.01,
-            ),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 23,
-                color: Theme.of(context).hintColor,
-                fontWeight: FontWeight.bold,
+    return StreamBuilder(
+    stream: FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+    .collection("taskLength").doc('task').snapshots(),
+    builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+    if (!snapshot.hasData) { 
+      return GestureDetector(
+      onTap: ()async{
+        if (!isCategory) {
+          setState(() {
+            isCategory = true;
+            catName = title;
+          });
+        } else {
+          setState(() {
+            isCategory = false;
+            catName = "";
+          });
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.only(left: 23),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.2),
+        child: Container(
+          width: we * 0.5,
+          height: he * 0.1,
+          margin: const EdgeInsets.only(
+            top: 25,
+            left: 14,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "$numbertask task",
+                style: TextStyle(color: Colors.red),
               ),
-            ),
-            SizedBox(height: he * 0.03),
-            Padding(
-                padding: const EdgeInsets.only(right: 30),
-                child: LineProgress(
-                  value: numbertask.toDouble(),
-                  Color: lineProgress,
-                )),
-          ],
+              SizedBox(
+                height: he * 0.01,
+              ),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 23,
+                  color: Theme.of(context).hintColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: he * 0.03),
+              Padding(
+                  padding: const EdgeInsets.only(right: 30),
+                  child: LineProgress(
+                    length: 1000000000,
+                    value: numbertask.toDouble(),
+                    Color: lineProgress,
+                  )),
+            ],
+          ),
         ),
-      ),
-    ));
+      ));
+    } else {
+      return GestureDetector(
+      onTap: ()async{
+        if (!isCategory) {
+          setState(() {
+            isCategory = true;
+            catName = title;
+          });
+        } else {
+          setState(() {
+            isCategory = false;
+            catName = "";
+          });
+        }
+      },
+      child: Card(
+        margin: const EdgeInsets.only(left: 23),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.2),
+        child: Container(
+          width: we * 0.5,
+          height: he * 0.1,
+          margin: const EdgeInsets.only(
+            top: 25,
+            left: 14,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "$numbertask task",
+                style: TextStyle(color: Colors.red),
+              ),
+              SizedBox(
+                height: he * 0.01,
+              ),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 23,
+                  color: Theme.of(context).hintColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: he * 0.03),
+              Padding(
+                  padding: const EdgeInsets.only(right: 30),
+                  child: LineProgress(
+                    length: numbertask.toDouble(),
+                    value: numbertask.toDouble() - snapshot.data[title].toDouble(),
+                    Color: lineProgress,
+                  )),
+            ],
+          ),
+        ),
+      ));
+    }});
   }
 
 //get value from addTask...................................................................................
@@ -590,12 +800,70 @@ makeListTile(Todo todo, index) {
                 padding: const EdgeInsets.only(left: 20),
                 child: InkWell(
                   onTap: () async{
+                    int isZero = 0;
+                    try{
+                      await collectionReference.collection("Users").doc(user!.email!)
+                      .collection("taskLength").doc('task').get()
+                      .then((snapshot) {
+                        setState(() {
+                          isZero = snapshot.get(todos[index].category);   
+                        });
+                      });
+                    } catch(e) {
+                      debugPrint("error");
+                    }
+
                     if (!todo.isCompleted) {
+                     if (isZero > 0) {
+                     try{
+                        //no of task
+                        await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                          .collection("taskLength").doc("task").update({
+                          todo.category: FieldValue.increment(-1),
+                        });
+
                       setState(() {
                         todo.isCompleted = true;
                       });
                       await flutterLocalNotificationsPlugin.cancel(todo.id);
+
+                      } catch(e) {
+                        Fluttertoast.showToast(  
+                        msg: 'No network..!',  
+                        toastLength: Toast.LENGTH_LONG,  
+                        gravity: ToastGravity.BOTTOM,  
+                        backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                        textColor: Colors.white); 
+                      }
+                      } else {
+                        Fluttertoast.showToast(  
+                        msg: 'Please be patient..!',  
+                        toastLength: Toast.LENGTH_LONG,  
+                        gravity: ToastGravity.BOTTOM,  
+                        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                        textColor: Colors.white); 
+                      }
                     } else {
+                    int isZero = 0;
+                    try{
+                      await collectionReference.collection("Users").doc(user!.email!)
+                      .collection("taskLength").doc('task').get()
+                      .then((snapshot) {
+                        setState(() {
+                          isZero = snapshot.get(todos[index].category);                
+                        });
+                      });
+                    } catch(e) {
+                      debugPrint("error");
+                    }
+                     
+                     try{
+                        //no of task
+                        await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                          .collection("taskLength").doc("task").update({
+                          todo.category: FieldValue.increment(1),
+                        });
+
                       setState(() {
                         todo.isCompleted = false;
                       });
@@ -603,8 +871,7 @@ makeListTile(Todo todo, index) {
                       String hours = todo.time.toString().substring(0, 2);
                       String minutes = todo.time.toString().substring(3, 5);   
                       List<int> date = [1, 2, 3, 4, 5, 6, 7];
-                      //print(hours);
-                      //print(minutes);
+
                       NotificationApi.showScheduledNotification(
                       id: todo.id,
                       title: todo.title,
@@ -616,6 +883,15 @@ makeListTile(Todo todo, index) {
                       date: date,
                       scheduledDate: DateTime.now().add(Duration(seconds: 10))
                     );
+                    } catch(e) {
+                      Fluttertoast.showToast(  
+                      msg: 'No network..!',  
+                      toastLength: Toast.LENGTH_LONG,  
+                      gravity: ToastGravity.BOTTOM,  
+                      backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                      textColor: Colors.white); 
+                    }
+                    
                     }
                   },
                   child: todo.isCompleted
@@ -688,7 +964,6 @@ makeListTile(Todo todo, index) {
         }),
         onListening: (isListening) {
           setState(() => this.isListening = isListening);
-         // print("####################################" + isListening.toString());
           // if (!isListening) {
           //   Future.delayed(Duration(seconds: 5), () {
           //     Utils().scanText(text, context);
@@ -715,6 +990,12 @@ makeListTile(Todo todo, index) {
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 FlatButton(
                     onPressed: () async{
+                      try{
+                      //no of task
+                      await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                      .collection("taskLength").doc("task").update({
+                        todo.category: FieldValue.increment(-1),
+                      });
                       setState(() {
                         todos.remove(todo);
                       });
@@ -733,7 +1014,14 @@ makeListTile(Todo todo, index) {
                       Navigator.pop(ctx);
                       saveTodo();
 
-
+                      } catch(e) {
+                        Fluttertoast.showToast(  
+                        msg: 'No network..!',  
+                        toastLength: Toast.LENGTH_LONG,  
+                        gravity: ToastGravity.BOTTOM,  
+                        backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                        textColor: Colors.white); 
+                      }  
                     },
                     child: Text("Yes",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
@@ -743,8 +1031,8 @@ makeListTile(Todo todo, index) {
   }
 
 } 
-
-//alan voice commands....................................................................................................
+// comment code.....................................................................................................
+//alan voice commands...............................................................................................
 
 //   handleCmd(Map<String, dynamic> res) async{
 //     int id = Random().nextInt(2147483637);
@@ -879,71 +1167,7 @@ makeListTile(Todo todo, index) {
 //     }
 //   }
 
-
-// class BaseWidget extends StatelessWidget {
-//   final Widget child;
-//   const BaseWidget({required this.child});  
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       bottomSheet: PersistentWidget(),
-//       body: Column(
-//         children: [
-//           Expanded(child: child),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-
-// comment code..................................................................................
-
-//import 'package:background_fetch/background_fetch.dart';
-
-
-  // Future<void> initPlatformStateForBackground() async {
-  // // Configure BackgroundFetch.
-  // var status = await BackgroundFetch.configure(BackgroundFetchConfig(
-  // minimumFetchInterval: 15,
-  // forceAlarmManager: false,
-  // stopOnTerminate: false,
-  // startOnBoot: true,
-  // enableHeadless: true,
-  // requiresBatteryNotLow: false,
-  // requiresCharging: false,
-  // requiresStorageNotLow: false,
-  // requiresDeviceIdle: false,
-  // requiredNetworkType: NetworkType.NONE,
-  // ), _onBackgroundFetch, _onBackgroundFetchTimeout);
-  // print('[BackgroundFetch] configure success: $status');
-  // initState();
-  // // Schedule backgroundfetch for the 1st time it will execute with 1000ms delay.
-  // // where device must be powered (and delay will be throttled by the OS).
-  // BackgroundFetch.scheduleTask(TaskConfig(
-  // taskId: 'com.evoke.task',
-  // delay: 1000,
-  // periodic: false,
-  // stopOnTerminate: false,
-  // enableHeadless: true
-  // ));
-  // }
-  
-  // void _onBackgroundFetchTimeout(String taskId) {
-  // print("[BackgroundFetch] TIMEOUT: $taskId");
-  // BackgroundFetch.finish(taskId);
-  // }
-
-  // void _onBackgroundFetch(String taskId) async {
-  // if(taskId == 'com.evoke.task') {
-  // print('[BackgroundFetch] Event received');
-
-  // initState();
-  // }
-  // }
-
-
-//   //Alan button......................................................................................................
+//   //Alan button..................................................................................................
 //   setUpalan() {
 //    setState(() {
 //       isAlanActive = true;
@@ -953,3 +1177,127 @@ makeListTile(Todo todo, index) {
 //         bottomMargin: 100);
 //     AlanVoice.callbacks.add((command) => handleCmd(command.data));
 //   }
+
+
+  // _onBackgroundFetch() async {
+  //   initPlatformState();
+  //   flutterTts.speak('[BackgroundFetch] started: ');
+  //   BackgroundFetch.finish;
+  // }  
+
+  // void _onClickEnable(enabled) {
+  //   setState(() {
+  //     _enabled = enabled;
+  //   });
+  //   if (enabled) {
+  //     BackgroundFetch.start().then((int status) {
+  //       print('[BackgroundFetch] start success: $status');
+  //     }).catchError((e) {
+  //       print('[BackgroundFetch] start FAILURE: $e');
+  //     });
+  //   } else {
+  //     BackgroundFetch.stop().then((int status) {
+  //       print('[BackgroundFetch] stop success: $status');
+  //     });
+  //   }
+  // }
+
+
+//...........................................................................................................
+    // onStart() {
+    //   WidgetsFlutterBinding.ensureInitialized();
+    //   //final service = FlutterBackgroundService();
+    //   // Run taks here :
+    //   startListening(); 
+    //   service.onDataReceived.listen((event) { 
+    //     // !IMPORTANT 
+    //     // must include print statement to pass null check: 
+    //     // other wise you get error: 
+    //     print(event!); 
+    //     // use Contain key or contain value: 
+    //     // for ignore null errors :  
+    //     // if (event.containsKey('action')) {  
+    //     //   String changer = 'game'; 
+    //     //   return; 
+    //     // } 
+    //     // startListening(); 
+    //     service.setNotificationInfo(
+    //       title: "Evoke",
+    //       content: "Updated at ${DateTime.now()}",
+    //     );
+    //   });
+
+
+// //Notification speak...................................................................................................
+//   Future<void> initPlatformState() async {
+//     startListening();
+//   }
+
+//   void onData(NotificationEvent event) {
+//     if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
+//     {
+//       String message = event.toString();
+//       flutterTts.speak(message.substring(50, message.lastIndexOf(",")));
+//     } else {
+//       debugPrint("error");
+//     }
+//     // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
+//      print(event);
+//   }
+
+//   void startListening() {
+//       _notifications = new Notifications();
+//       try {
+//         _subscription = _notifications.notificationStream!.listen(onData);
+//       } on NotificationException catch (exception) {
+//         print(exception);
+//       }
+//   }
+
+
+//...........................................................
+  // Platform messages are asynchronous, so we initialize in an async method.
+  // Future<void> initPlatformStateForBackground() async {
+  //   // Configure BackgroundFetch.
+  //   int status = await BackgroundFetch.configure(BackgroundFetchConfig(
+  //       minimumFetchInterval: 15,
+  //       stopOnTerminate: false,
+  //       enableHeadless: true,
+  //       requiresBatteryNotLow: false,
+  //       requiresCharging: false,
+  //       requiresStorageNotLow: false,
+  //       requiresDeviceIdle: false,
+  //       requiredNetworkType: NetworkType.NONE
+  //   ),   (String taskId) async {  // <-- Event handler
+  //     // This is the fetch-event callback.
+  //     initPlatformState().then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+  //     //flutterTts.speak('[BackgroundFetch] configure success: ');
+  //     print("[BackgroundFetch] Event received $taskId");
+  //     // setState(() {
+  //     //   _events.insert(0, new DateTime.now());
+  //     // });
+  //     // IMPORTANT:  You must signal completion of your task or the OS can punish your app
+  //     // for taking too long in the background.
+  //     BackgroundFetch.finish(taskId);
+  //   },   
+  //   (String taskId) async {  // <-- Task timeout handler.
+  //     // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
+  //     print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
+  //     BackgroundFetch.finish(taskId);
+  //   }
+  //   );
+  //   initPlatformState().then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+  //   print('[BackgroundFetch] configure success: $status');
+  //   setState(() {
+  //     _status = status;
+  //   });        
+
+  //   // If the widget was removed from the tree while the asynchronous platform
+  //   // message was in flight, we want to discard the reply rather than calling
+  //   // setState to update our non-existent appearance.
+  //   if (!mounted) return;
+  // }
+ 
+ //local variables for text to speech ..................................................................................................
+  // late Notifications _notifications;
+  // late StreamSubscription<NotificationEvent> _subscription;

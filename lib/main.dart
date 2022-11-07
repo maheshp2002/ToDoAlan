@@ -1,27 +1,79 @@
 
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:isolate';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:flutter/services.dart';
 import 'package:todoalan/login/login.dart';
 import 'package:todoalan/splash/splash.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:notifications/notifications.dart';
+// import 'package:logger/logger.dart';
+// import 'package:workmanager/workmanager.dart';
+// import 'package:background_fetch/background_fetch.dart';
+// import 'package:flutter_background_service/flutter_background_service.dart';
 
 
+FlutterTts flutterTtsGlobal = FlutterTts();
 
-//initialize firebase app during notification.................................................................
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('A bg message just showed up : ${message.messageId}');
-}
+// @pragma('vm:entry-point')
+// void callbackDispatcher() {
+//   Workmanager().executeTask((taskName, inputData) {
+//     try {
+//     // flutterTtsGlobal.speak("ok done");
+//     Timer(Duration(minutes: 1), (){
+//     flutterTtsGlobal.speak("baabu namboothiri aanu. sivaanandhan");
+//     print("#####################################################################################ok done");
+//     }
+//     );
+//     // homepageState().initPlatformState;
+//     // flutterTtsGlobal.speak("sucess");
+//     } catch(err) {
+//       flutterTtsGlobal.speak(err.toString());
+//       Logger().e(err.toString()); // Logger flutter package, prints error on the debug console
+//       throw Exception(err);
+//     }
+//     return Future.value(true);
+//   });
+// }
 
+//background fetch.............................................................................................
+// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
+// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
+// @pragma('vm:entry-point')
+// void backgroundFetchHeadlessTask(HeadlessTask task) async {
+//   FlutterTts flutterTts = FlutterTts();
+//   String taskId = task.taskId;
+//   bool isTimeout = task.timeout;
+//   if (isTimeout) {
+//     // This task has exceeded its allowed running-time.  
+//     // You must stop what you're doing and immediately .finish(taskId)
+//     //flutterTts.speak("[BackgroundFetch] Headless task timed-out: $taskId");
+//     print("[BackgroundFetch] Headless task timed-out: $taskId");
+//     BackgroundFetch.finish(taskId);
+//     return;
+//   }  
+//   homepageState().initPlatformState()
+//   .then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+
+//   print('[BackgroundFetch] Headless event received.');
+//   BackgroundFetch.finish(taskId);
+// }
+
+// The callback function should always be a top-level function.
+// @pragma('vm:entry-point')
+// void startCallback() {
+//   // The setTaskHandler function must be called to handle the task in the background.
+//   FlutterForegroundTask.setTaskHandler(MyTaskHandler());
+// }
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
 
   await SystemChrome.setPreferredOrientations([
@@ -31,16 +83,8 @@ Future<void> main() async{
 
   await Firebase.initializeApp();
   
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  FlutterBackgroundService.initialize(homepageState().onStart);
-  
+  //BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+  //FlutterBackgroundService.initialize(homepageState().onStart);
   runApp(RestartWidget(
   child:  MyApp()));
 }
@@ -191,6 +235,67 @@ class _RestartWidgetState extends State<RestartWidget> {
   }
 }
 
+//foreground service........................................................................................................
+// The callback function should always be a top-level function.
+@pragma('vm:entry-point')
+void startCallback() {
+  // The setTaskHandler function must be called to handle the task in the background.
+  FlutterForegroundTask.setTaskHandler(MyTaskHandler());
+}
+
+class MyTaskHandler extends TaskHandler {
+  SendPort? _sendPort;
+  int _eventCount = 0;
+
+  @override
+  Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
+    _sendPort = sendPort;
+    initPlatformState();
+    // You can use the getData function to get the stored data.
+    final customData =
+        await FlutterForegroundTask.getData<String>(key: 'customData');
+    debugPrint('customData: $customData');
+  }
+
+  @override
+  Future<void> onEvent(DateTime timestamp, SendPort? sendPort) async {
+    FlutterForegroundTask.updateService(
+      notificationTitle: 'Foreground service',
+      notificationText: 'seconds: $_eventCount',
+    );
+
+    // Send data to the main isolate.
+    sendPort?.send(_eventCount);
+
+    _eventCount++;
+  }
+
+  @override
+  Future<void> onDestroy(DateTime timestamp, SendPort? sendPort) async {
+    // You can use the clearAllData function to clear all the stored data.
+    await FlutterForegroundTask.clearAllData();
+  }
+
+  @override
+  void onButtonPressed(String id) {
+    // Called when the notification button on the Android platform is pressed.
+    debugPrint('onButtonPressed >> $id');
+  }
+
+  @override
+  void onNotificationPressed() {
+    // Called when the notification itself on the Android platform is pressed.
+    //
+    // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
+    // this function to be called.
+
+    // Note that the app will only route to "/resume-route" when it is exited so
+    // it will usually be necessary to send a message through the send port to
+    // signal it to restore state when the app is already started.
+    FlutterForegroundTask.launchApp("/resume-route");
+    _sendPort?.send('onNotificationPressed');
+  }
+}
 
 //Theme........................................................................................................
 class ThemeClass{
@@ -364,3 +469,42 @@ List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];
 // }
 
 //..........................................................................................................
+
+//Notification speak...................................................................................................
+  Future<void> initPlatformState() async {
+    try {
+      isNotificationSound == true ? startListening() : null;
+    } catch(e) {
+      startListening();
+    }
+  }
+
+  void onData(NotificationEvent event) {
+    try{
+      if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
+      {
+        if (event.toString().substring(0, 77) == 'NotificationEvent - package: com.alantodo.todoalan, title: Foreground service')
+        {
+          debugPrint("error");
+        } else {
+          String message = event.toString();
+          flutterTtsGlobal.speak(message.substring(50, message.lastIndexOf(",")));
+        }
+      } else {
+        debugPrint("error");
+      }
+      // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
+      print(event);
+    } catch(e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  void startListening() {
+      notifications = new Notifications();
+      try {
+        subscription = notifications.notificationStream!.listen(onData);
+      } on NotificationException catch (exception) {
+        debugPrint(exception.toString());
+      }
+  }

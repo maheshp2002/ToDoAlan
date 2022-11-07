@@ -19,7 +19,7 @@ import 'package:todoalan/main.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 
 
-enum Menu { itemDelete, itemClearSelection }
+enum Menu { itemDelete, itemClearSelection, ClearTask }
 
 class backupTask extends StatefulWidget {
   backupTask({Key? key}) : super(key: key);
@@ -200,11 +200,15 @@ class _backupTaskState extends State<backupTask> {
                       debugPrint(e.toString());
                      }                   
 
-              } else {     
-   
-              selectedItem();
+                  } else if (item.name == "ClearTask") {
 
-              }
+                    Cleartask();
+
+                  } else {     
+      
+                  selectedItem();
+
+                  }
               },
 
               itemBuilder: (BuildContext context) => <PopupMenuEntry<Menu>>[
@@ -216,6 +220,14 @@ class _backupTaskState extends State<backupTask> {
                         style:  TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor,fontWeight: FontWeight.bold))
                       ]),
                     ),
+                    PopupMenuItem<Menu>(
+                      value: Menu.ClearTask,
+                      child: Row(children: [
+                        Icon(Icons.delete_sweep, color: Theme.of(context).hintColor,),
+                        Text(" Delete all",
+                        style:  TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor,fontWeight: FontWeight.bold))
+                      ]),
+                    ), 
                      PopupMenuItem<Menu>(
                       value: Menu.itemClearSelection,
                       child: Row(children: [
@@ -334,6 +346,13 @@ class _backupTaskState extends State<backupTask> {
               ),
               SlidableAction(
               onPressed: (context) async {
+                try {
+                  //no of task
+                  await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                    .collection("taskLength").doc("task").update({
+                    snapshot.data.docs[index]['category']: FieldValue.increment(1),
+                  });
+                
                 Todo t = Todo(id: int.parse(snapshot.data.docs[index].id), title: '', description: '', isCompleted: false, time: '', days: '', category: '');
 
                 setState(() {
@@ -383,6 +402,14 @@ class _backupTaskState extends State<backupTask> {
 
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MyApp()));
 
+                } catch(e) {
+                  Fluttertoast.showToast(  
+                  msg: 'No network..!',  
+                  toastLength: Toast.LENGTH_LONG,  
+                  gravity: ToastGravity.BOTTOM,  
+                  backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                  textColor: Colors.white); 
+                }
               },
               backgroundColor:
               const Color(0xFF21B7CA),
@@ -423,7 +450,7 @@ makeListTile(String id, category, title, description, time, days, isSelected) {
     var he = MediaQuery.of(context).size.height;
 
     return GestureDetector(
-    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category, days) : debugPrint("hi"),
+    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category, days) : debugPrint("error detail task"),
     child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -530,6 +557,67 @@ makeListTile(String id, category, title, description, time, days, isSelected) {
             
   }
 
+//delete all task.......................................................................................................
+Cleartask() async{
+     await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          title: Text("Do you want to delete all task?", textAlign: TextAlign.center,
+          style:  TextStyle(fontFamily: 'BrandonBI', color: Theme.of(context).hintColor,fontWeight: FontWeight.bold)),
+          
+          content: Text("This will delete all the task from cloud!", textAlign: TextAlign.center,
+          style:  TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor,fontWeight: FontWeight.bold)),                    
+          
+          actions: <Widget>[
+          ElevatedButton(  
+            style: ElevatedButton.styleFrom(
+              primary: Theme.of(context).scaffoldBackgroundColor
+             ),               
+            child: Text('Cancel',style: TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor)),  
+            onPressed: () {  
+              Navigator.of(context).pop();  
+            },  
+          ),  
+          ElevatedButton(  
+            style: ElevatedButton.styleFrom(
+              primary: Theme.of(context).scaffoldBackgroundColor
+             ),               
+            child: Text('Delete',style: TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor)),  
+            onPressed: () async { 
+              String imgUrl = "";
+              String id = ""; //for saving to other collection with same doc id
+              Navigator.of(context).pop();  
+
+                        try{
+                          FirebaseFirestore.instance.collection("Users").doc(user!.email!).collection('backup')
+                          .snapshots().forEach((element) {
+                          for (QueryDocumentSnapshot snapshot in element.docs) {
+                            snapshot.reference.delete();
+                          }});
+                        }catch(e){
+                          Fluttertoast.showToast(  
+                          msg: 'error occured..!',  
+                          toastLength: Toast.LENGTH_LONG,  
+                          gravity: ToastGravity.BOTTOM,  
+                          backgroundColor: Color.fromARGB(255, 248, 17, 0),  
+                          textColor: Colors.white  
+                          );                            
+                        }   
+
+            Fluttertoast.showToast(  
+            msg: 'Deleting task may take a while..!',  
+            toastLength: Toast.LENGTH_LONG,  
+            gravity: ToastGravity.BOTTOM,  
+            backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+            textColor: Colors.white  
+            );  
+            }, 
+            ),
+
+          ],
+        ));  
+}
 
 //detailed view.......................................................................................................
   detailTask(String title, description, time, category, days) {
@@ -610,6 +698,7 @@ makeListTile(String id, category, title, description, time, days, isSelected) {
             Padding(
                 padding: const EdgeInsets.only(right: 30),
                 child: LineProgress(
+                  length: 1000000000,
                   value: numbertask.toDouble(),
                   Color: lineProgress,
                 )),

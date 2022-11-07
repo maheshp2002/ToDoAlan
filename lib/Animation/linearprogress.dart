@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 class LineProgress extends StatefulWidget {
-  LineProgress({Key? key, required this.Color,required this.value}) : super(key: key);
+  LineProgress({Key? key, required this.Color,required this.value, required this.length}) : super(key: key);
   final Color;
   double value;
+  double length;
   @override
   State<LineProgress> createState() => _LineProgressState();
 }
@@ -35,10 +36,13 @@ class _LineProgressState extends State<LineProgress>
   @override
   Widget build(BuildContext context) {
     return LinearProgressIndicator(
-      value: _animation.value + widget.value.toDouble() /10,
+      value: widget.length == 0 ? 0
+      : _animation.value + widget.value.toDouble() / widget.length.toDouble(),
       valueColor:
            AlwaysStoppedAnimation(widget.Color),
       backgroundColor: Colors.purple[100],
     );
   }
 }
+
+//_animation.value + widget.value.toDouble() / widget.length.toDouble()
