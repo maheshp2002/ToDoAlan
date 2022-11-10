@@ -68,11 +68,14 @@ dev_dependencies:
   flutter_switch: ^0.3.2
   url_launcher: ^6.1.6
 
-  #Alan voice
+  #Voice assistant
   alan_voice: ^3.6.0
   speech_to_text: ^5.5.0
   picovoice_flutter: ^2.1.6
   permission_handler: ^10.1.0
+  leopard_flutter: ^1.1.0
+  path_provider: ^2.0.9
+  flutter_voice_processor: ^1.0.7
 
   # floating action button effect
   avatar_glow: ^2.0.2
@@ -89,7 +92,7 @@ dev_dependencies:
   flutter_local_notifications: ^12.0.2
   flutter_native_timezone: ^2.0.0
   flutter_foreground_task: ^3.10.0
-  
+
   # logger: ^1.1.0
   # workmanager: ^0.4.1
   #flutter_local_notifications: ^9.1.5
@@ -113,6 +116,7 @@ flutter:
     - assets/todoAlanTheme/
     - assets/pico_voice/Evoke_en_android_v2_1_0.rhn
     - assets/pico_voice/hey-evoke_en_android_v2_1_0.ppn
+    - assets/pico_voice/Evoke--leopard-v1.1.0--22-11-08--07-38-33.pv
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

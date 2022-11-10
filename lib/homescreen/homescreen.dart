@@ -1,33 +1,43 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
+import 'package:todoalan/AI/leopard_manager.dart';
 import 'package:todoalan/main.dart';
-import 'package:todoalan/AI/AI.dart';
+// import 'package:todoalan/AI/AI.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/AI/AI/API.dart';
+import 'package:rhino_flutter/rhino.dart';
 import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:todoalan/homescreen/wish.dart';
 import 'package:todoalan/addTask/addTask.dart';
+import 'package:todoalan/profile/profile.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:notifications/notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:todoalan/addTask/backupTask.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todoalan/themeSelect/themeSelect.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:picovoice_flutter/picovoice_error.dart';
+import 'package:picovoice_flutter/picovoice_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
+import 'package:leopard_flutter/leopard.dart';
+import 'package:leopard_flutter/leopard_error.dart';
+import 'package:leopard_flutter/leopard_transcript.dart';
 
 //global variables................................................................................................
 
@@ -72,12 +82,503 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
   User? user = FirebaseAuth.instance.currentUser;
   String text = '';
   bool isListening = false;
+  bool isTitle = true;
 
   final collectionReference = FirebaseFirestore.instance;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
    
+
+  //picovoice local variables
+  PicovoiceManager? _picovoiceManager;
+  bool _listeningForCommand = false;
+  bool _isError = false;
+  String _errorMessage = "";
+  final String accessKey = "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
+
+  //leopard local variables
+  bool isError = false;
+  String errorMessage = "";
+  final int maxRecordingLengthSecs = 120;
+  bool isRecording = false;
+  bool isProcessing = false;
+  double recordedLength = 0.0;
+  String statusAreaText = "";
+  String transcriptText = "";
+  List<LeopardWord> words = [];
+
+  MicRecorder? _micRecorder;
+  Leopard? _leopard;
+
+//picovoice initilize...................................................................................................
+  void _initPicovoice() async {
+    String platform = Platform.isAndroid
+        ? "android"
+        : Platform.isIOS
+            ? "ios"
+            : throw PicovoiceRuntimeException(
+                "This demo supports iOS and Android only.");
+    String keywordAsset = "assets/pico_voice/hey-evoke_en_android_v2_1_0.ppn";
+    String contextAsset = "assets/pico_voice/Evoke_en_android_v2_1_0.rhn";
+
+    try {
+      _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
+          _wakeWordCallback, contextAsset, _inferenceCallback,
+          processErrorCallback: _errorCallback);
+      await _picovoiceManager?.start();
+    } on PicovoiceInvalidArgumentException catch (ex) {
+      _errorCallback(PicovoiceInvalidArgumentException(
+          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+    } on PicovoiceActivationException {
+      _errorCallback(
+          PicovoiceActivationException("AccessKey activation error."));
+    } on PicovoiceActivationLimitException {
+      _errorCallback(PicovoiceActivationLimitException(
+          "AccessKey reached its device limit."));
+    } on PicovoiceActivationRefusedException {
+      _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
+    } on PicovoiceActivationThrottledException {
+      _errorCallback(PicovoiceActivationThrottledException(
+          "AccessKey has been throttled."));
+    } on PicovoiceException catch (ex) {
+      _errorCallback(ex);
+    }
+  }
+
+    void _wakeWordCallback() {
+      setState(() {
+        _listeningForCommand = true;
+      });
+    }
+
+  void _inferenceCallback(RhinoInference inference) {  
+    if (inference.isUnderstood!) {
+      Map<String, String> slots = inference.slots!;
+      if (inference.intent == 'Navigation') {
+        _navigate(slots);
+      } else if (inference.intent == 'addtask') {
+        _task(slots);
+      } 
+      else if (inference.intent == 'setTime') {
+        _setTime(slots);
+      }
+
+    } else {
+        flutterTts.speak("Sorry I didn't understand that command!");
+        
+        Fluttertoast.showToast(  
+        msg: "Sorry I didn't understand that command..!",  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.BOTTOM,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+     
+    }
+    setState(() {
+      _listeningForCommand = false;
+    });
+  }
+
+  //task
+  _task(Map<String, String> slots){
+    if (slots['category'] == 'Work') {
+      flutterTts.speak("Setting category as Work");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Work..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Work';
+      });
+
+    } else if (slots['category'] == 'Personal') {
+      flutterTts.speak("Setting category as Personal");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Personal..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Personal';
+      });
+      
+    } else if (slots['category'] == 'Sports') {
+      flutterTts.speak("Setting category as Sports");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Sports..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Sports';
+      });
+      
+    } else if (slots['category'] == 'Education') {
+      flutterTts.speak("Setting category as Education");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Education..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Education';
+      });
+
+    } else if (slots['category'] == 'Medical') {
+      flutterTts.speak("Setting category as Medical");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Medical..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Medical';
+      });
+      
+    } else if (slots['category'] == 'Others') {
+      flutterTts.speak("Setting category as Others");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Others..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        globalCategory = 'Others';
+      });
+      
+    } else if (slots['editTask'] == 'title') {
+      flutterTts.speak("Please tell me the title");
+
+      Fluttertoast.showToast(  
+      msg: 'Please tell me the title..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        // _listeningForCommand = false;
+        isEnable = true;
+        isTitle = true;
+      });
+      _picovoiceManager?.stop();
+
+    } else if (slots['editTask'] == 'description') {
+      flutterTts.speak("Please tell me the description");
+
+      Fluttertoast.showToast(  
+      msg: 'Please tell me the description..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        // _listeningForCommand = false;
+        isEnable = true;
+        isTitle = false;
+      });
+      _picovoiceManager?.stop();     
+    } else if (slots['save'] == 'save') {
+      flutterTts.speak("saving task");
+
+      Fluttertoast.showToast(  
+      msg: 'Saving task..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      addVoiceTask();
+
+      Future.delayed(Duration(seconds: 5,), (){
+        AISpeak.speak("please restart app to see new task"); 
+
+        Fluttertoast.showToast(  
+        msg: 'Please restart app to see new task..!',  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.BOTTOM,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+
+    });
+
+    }
+  }
+
+  //time
+  _setTime(Map<String, String> slots) {
+    int hour = 0;
+    int minute = 0;
+
+    if (slots['hours'] != null) {
+      setState(() {
+        hour = int.parse(slots['hours']!);
+      });
+      
+      if (hour == 12) setState(() {hour = 0; });
+    }
+    if (slots['minutes'] != null) {
+      setState(() {
+        minute = int.parse(slots['minutes']!);
+      });
+      
+    }
+
+    if (slots['amPm'] == "pm") setState(() {hour += 12; });
+
+    if (hour >= 24 || minute >= 60) {
+      flutterTts.speak("$hour:$minute is an invalid time.");
+
+      Fluttertoast.showToast(  
+      msg: '$hour:$minute is an invalid time...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 0, 0),  
+      textColor: Colors.white); 
+     
+    }
+
+    Future.delayed(Duration(seconds: 5), () {
+    flutterTts.speak("setting time $hour:$minute.");     
+
+    setState(() {
+      timeController.text = hour.toString() + ":" + minute.toString();
+    });
+    
+    Fluttertoast.showToast(  
+    msg: 'Setting time $hour:$minute....!',  
+    toastLength: Toast.LENGTH_LONG,  
+    gravity: ToastGravity.BOTTOM,  
+    backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+    textColor: Colors.white); 
+
+    });
+  }
+
+  //navigation
+  _navigate(Map<String, String> slots){
+    if (slots['navigation'] == 'backup') {
+      flutterTts.speak("Opening backup page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening backup page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => backupTask()));
+
+    } else if (slots['navigation'] == 'homepage') {
+      flutterTts.speak("Opening homepage");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening homepage...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+      
+    } else if (slots['navigation'] == 'theme') {
+      flutterTts.speak("Opening theme page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening theme page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => themeSelect()));
+
+    } else if (slots['navigation'] == 'profile') {
+      flutterTts.speak("Opening profile page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening profile page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => profileUpdates()));
+
+    } else if (slots['back'] == 'back') {
+      flutterTts.speak("Going back");
+
+      Fluttertoast.showToast(  
+      msg: 'Going back...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.of(context).pop();
+
+    }
+  }
+
+    void _errorCallback(PicovoiceException error) {
+      setState(() {
+        _isError = true;
+        _errorMessage = error.message!;
+      });
+    }
+
+//initializing leopard.................................................................................................
+  Future<void> initLeopard() async {
+    String platform = Platform.isAndroid
+        ? "android"
+        : Platform.isIOS
+            ? "ios"
+            : throw LeopardRuntimeException(
+                "This demo supports iOS and Android only.");
+    String modelPath = "assets/pico_voice/Evoke--leopard-v1.1.0--22-11-08--07-38-33.pv";
+
+    try {
+      _leopard = await Leopard.create(accessKey, modelPath,
+          enableAutomaticPunctuation: true);
+      _micRecorder = await MicRecorder.create(
+          _leopard!.sampleRate, recordedCallback, errorCallback);
+    } on LeopardInvalidArgumentException catch (ex) {
+      errorCallback(LeopardInvalidArgumentException(
+          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+    } on LeopardActivationException {
+      errorCallback(LeopardActivationException("AccessKey activation error."));
+    } on LeopardActivationLimitException {
+      errorCallback(LeopardActivationLimitException(
+          "AccessKey reached its device limit."));
+    } on LeopardActivationRefusedException {
+      errorCallback(LeopardActivationRefusedException("AccessKey refused."));
+    } on LeopardActivationThrottledException {
+      errorCallback(
+          LeopardActivationThrottledException("AccessKey has been throttled."));
+    } on LeopardException catch (ex) {
+      errorCallback(ex);
+    }
+  }
+
+  Future<void> recordedCallback(double length) async {
+    if (length < maxRecordingLengthSecs) {
+      setState(() {
+        recordedLength = length;
+        statusAreaText =
+            "Recording : ${length.toStringAsFixed(1)} / $maxRecordingLengthSecs seconds";
+      });
+    } else {
+      setState(() {
+        recordedLength = length;
+        statusAreaText = "Transcribing, please wait...";
+      });
+      await _stopRecording();
+    }
+  }
+
+  void errorCallback(LeopardException error) {
+    setState(() {
+      isError = true;
+      errorMessage = error.message!;
+    });
+  }
+
+  Future<void> _startRecording() async {
+    if (isRecording || _micRecorder == null) {
+      return;
+    }
+
+    try {
+      await _micRecorder!.startRecord();
+      setState(() {
+        isRecording = true;
+      });
+    } on LeopardException catch (ex) {
+      print("Failed to start audio capture: ${ex.message}");
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    if (!isRecording || _micRecorder == null) {
+      return;
+    }
+
+    try {
+      File recordedFile = await _micRecorder!.stopRecord();
+      setState(() {
+        statusAreaText = "Transcribing, please wait...";
+        isRecording = false;
+      });
+      _processAudio(recordedFile);
+    } on LeopardException catch (ex) {
+      print("Failed to stop audio capture: ${ex.message}");
+    }
+  }
+
+  Future<void> _processAudio(File recordedFile) async {
+    if (_leopard == null) {
+      return;
+    }
+
+    Stopwatch stopwatch = Stopwatch()..start();
+    LeopardTranscript? result = await _leopard?.processFile(recordedFile.path);
+    Duration elapsed = stopwatch.elapsed;
+
+    String audioLength = recordedLength.toStringAsFixed(1);
+    String transcriptionTime =
+        (elapsed.inMilliseconds / 1000).toStringAsFixed(1);
+
+    setState(() {
+      statusAreaText =
+          "Transcribed $audioLength(s) of audio in $transcriptionTime(s)";
+      transcriptText = result?.transcript ?? "";
+      isTitle ? titleController.text = result?.transcript ?? ""
+      : descriptionController.text = result?.transcript ?? "";
+      words = result?.words ?? [];
+      Future.delayed(Duration(seconds: 2), () {
+        setState(() {
+           isEnable = false;
+        }); 
+
+        Fluttertoast.showToast(  
+        msg: 'title is $transcriptText',  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.BOTTOM,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+
+        _picovoiceManager?.start();
+
+      });
+      
+    });
+  }
+
 
 //initializing todo.................................................................................................
   setupTodo() async {
@@ -98,6 +599,7 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
     prefs!.setString(user!.email!, jsonEncode(items));
   }
 
+//...................................................................................................................
 
   @override
   void initState() {
@@ -106,7 +608,7 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
     NotificationApi.init(initScheduled: true);
     initPlatformState(); //notification speak
     _initForegroundTask(); //foreground service
-    listenNotifications();
+    // listenNotifications();
     tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
@@ -116,7 +618,18 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
       });
     });
 
-    //setUpalan();
+    _initPicovoice();
+
+    setState(() {
+      recordedLength = 0.0;
+      statusAreaText =
+          "Press START to start recording some audio to transcribe";
+      transcriptText = "";
+      words = [];
+    });
+
+    initLeopard();
+
     super.initState();
   }
 
@@ -124,18 +637,20 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
   void dispose() {
   // _closeReceivePort();
   WidgetsBinding.instance!.removeObserver(this);
+  _picovoiceManager?.stop();
+  _stopRecording();
   super.dispose();
   }
 
 //lsiten to notification..........................................................................................
-void listenNotifications() =>
-            NotificationApi.onNotifications.stream.listen(onClickedNotification);
+// void listenNotifications() =>
+//             NotificationApi.onNotifications.stream.listen(onClickedNotification);
 
-  void onClickedNotification(String? payload) async{
-    isNotificationSound == true 
-    ? await flutterTts.speak(payload.toString()) 
-    : debugPrint("################################disabled");
-  } 
+//   void onClickedNotification(String? payload) async{
+//     isNotificationSound == true 
+//     ? await flutterTts.speak(payload.toString()) 
+//     : debugPrint("################################disabled");
+//   } 
 
 //foreground service...............................................................................................
   void _initForegroundTask() {
@@ -153,10 +668,10 @@ void listenNotifications() =>
           name: 'launcher',
           backgroundColor: Color.fromARGB(255, 255, 178, 89),
         ),
-        buttons: [
-          const NotificationButton(id: 'sendButton', text: 'Send'),
-          const NotificationButton(id: 'testButton', text: 'Test'),
-        ],
+        // buttons: [
+        //   const NotificationButton(id: 'sendButton', text: 'Send'),
+        //   const NotificationButton(id: 'testButton', text: 'Test'),
+        // ],
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: true,
@@ -182,21 +697,53 @@ void listenNotifications() =>
   final isScreen = state == AppLifecycleState.resumed;
 
   isBg || isScreen == false || isClosed == true
-      ? runTask()
+      ? runTask(isClosed)
 
-      : null;
+      : _picovoiceManager?.start();
   }
 
 
-runTask() {
+runTask(bool isClosed) {
   try{
     isNotificationSound == true ? _startForegroundTask() : null;
+
+    // isClosed ? _stopRecording() : null;
+    // isClosed ? _picovoiceManager?.stop() : null;
+
+    try{
+      _stopRecording();
+    } catch(e) {
+      print(e);
+    }
+
+    try{
+      _picovoiceManager?.stop();
+    } catch(e) {
+      print(e);
+    }
+
   } catch(e) {
     _startForegroundTask();
+    
+    try{
+      _stopRecording();
+    } catch(e) {
+      print(e);
+    }
+
+    try{
+      _picovoiceManager?.stop();
+    } catch(e) {
+      print(e);
+    }
   }
   
 }
-//........................................................................................................................
+
+
+
+
+//foreground task.................................................................................................
 
   Future<bool> _startForegroundTask() async {
     // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
@@ -243,7 +790,7 @@ runTask() {
   }
 
   bool _registerReceivePort(ReceivePort? receivePort) {
-    _closeReceivePort();
+    closeReceivePort();
 
     if (receivePort != null) {
       _receivePort = receivePort;
@@ -265,11 +812,12 @@ runTask() {
     return false;
   }
 
-  void _closeReceivePort() {
+  void closeReceivePort() {
     _receivePort?.close();
     _receivePort = null;
   }
 
+//................................................................................................................
 
   @override
   Widget build(BuildContext context) {
@@ -285,48 +833,45 @@ runTask() {
       child:   Row(mainAxisAlignment: MainAxisAlignment.start,
     children: [
     AvatarGlow(
-    animate: isListening,
+    animate: isRecording,
     endRadius: 35,
     glowColor: Color.fromARGB(255, 255, 17, 1),
     child: FloatingActionButton(
-    backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
-    child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
-    onPressed: toggleRecording,
+    backgroundColor: isRecording ? Colors.greenAccent : Colors.blue,
+    child: Icon(isRecording ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: isError ? null : isRecording ? _stopRecording : _startRecording,      
+      // toggleRecording,
     ),
     ),  
     Container(
     width: 100,
     height: 300,
-    child: SingleChildScrollView(
-    reverse: true,  
-    child:
-    SubstringHighlight(
-    text: text,
-    terms: Command.all,
-    textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
-    textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
-    ))),
+    child: Text(transcriptText, 
+    style: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))
+    // SingleChildScrollView(
+    // reverse: true,  
+    // child:
+    // SubstringHighlight(
+    // text: text,
+    // terms: Command.all,
+    // textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    // textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    // ))
+    ),
     ],),
     ) : null,
-    floatingActionButton:   GestureDetector(onLongPress: () { 
-      Permission.microphone;
-      isEnable ?
-      setState(() {
-        flutterTts.speak("see you again"); 
-        isEnable = false;
-      }) 
-      : setState(() {
-        flutterTts.speak("Hey there, I'm here to help you"); 
-        isEnable = true;
-      });
-    // if (isAlanActive == true) {
-    //   AlanVoice.deactivate();
-    //   setState(() {
-    //     isAlanActive = false;
-    //   });
-    // }  else {
-    //   setUpalan();
-    // }
+    floatingActionButton: GestureDetector(onLongPress: () { 
+      // Permission.microphone;
+      // isEnable ?
+      // setState(() {
+      //   flutterTts.speak("see you again"); 
+      //   isEnable = false;
+      // }) 
+      // : setState(() {
+      //   flutterTts.speak("Hey there, I'm here to help you"); 
+      //   isEnable = true;
+      // });
+
     },
     child: FloatingActionButton(onPressed: (){
       addTodo();
@@ -375,7 +920,7 @@ runTask() {
       body: WithForegroundTask(
       child:
       ListView(children: [
-
+        Text(statusAreaText),
                     FadeAnimation(
                     delay: widget.animationtime,
                     child: Container(
@@ -766,7 +1311,6 @@ runTask() {
   }
 
 //make listview of task items................................................................................
-
 makeListTile(Todo todo, index) {
     Color color = Colors.red;
     if (todo.category == "Work") {
@@ -1031,6 +1575,7 @@ makeListTile(Todo todo, index) {
   }
 
 } 
+
 // comment code.....................................................................................................
 //alan voice commands...............................................................................................
 

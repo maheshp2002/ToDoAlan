@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:isolate';
 import 'package:flutter/material.dart';
@@ -6,70 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:todoalan/login/login.dart';
 import 'package:todoalan/splash/splash.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:notifications/notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:notifications/notifications.dart';
-// import 'package:logger/logger.dart';
-// import 'package:workmanager/workmanager.dart';
-// import 'package:background_fetch/background_fetch.dart';
-// import 'package:flutter_background_service/flutter_background_service.dart';
 
+// FlutterTts flutterTtsGlobal = FlutterTts();
 
-FlutterTts flutterTtsGlobal = FlutterTts();
-
-// @pragma('vm:entry-point')
-// void callbackDispatcher() {
-//   Workmanager().executeTask((taskName, inputData) {
-//     try {
-//     // flutterTtsGlobal.speak("ok done");
-//     Timer(Duration(minutes: 1), (){
-//     flutterTtsGlobal.speak("baabu namboothiri aanu. sivaanandhan");
-//     print("#####################################################################################ok done");
-//     }
-//     );
-//     // homepageState().initPlatformState;
-//     // flutterTtsGlobal.speak("sucess");
-//     } catch(err) {
-//       flutterTtsGlobal.speak(err.toString());
-//       Logger().e(err.toString()); // Logger flutter package, prints error on the debug console
-//       throw Exception(err);
-//     }
-//     return Future.value(true);
-//   });
-// }
-
-//background fetch.............................................................................................
-// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
-// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
-// @pragma('vm:entry-point')
-// void backgroundFetchHeadlessTask(HeadlessTask task) async {
-//   FlutterTts flutterTts = FlutterTts();
-//   String taskId = task.taskId;
-//   bool isTimeout = task.timeout;
-//   if (isTimeout) {
-//     // This task has exceeded its allowed running-time.  
-//     // You must stop what you're doing and immediately .finish(taskId)
-//     //flutterTts.speak("[BackgroundFetch] Headless task timed-out: $taskId");
-//     print("[BackgroundFetch] Headless task timed-out: $taskId");
-//     BackgroundFetch.finish(taskId);
-//     return;
-//   }  
-//   homepageState().initPlatformState()
-//   .then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
-
-//   print('[BackgroundFetch] Headless event received.');
-//   BackgroundFetch.finish(taskId);
-// }
-
-// The callback function should always be a top-level function.
-// @pragma('vm:entry-point')
-// void startCallback() {
-//   // The setTaskHandler function must be called to handle the task in the background.
-//   FlutterForegroundTask.setTaskHandler(MyTaskHandler());
-// }
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,7 +50,6 @@ class MyAppState extends State<MyApp> {
   /// 1) our themeMode "state" field
   ThemeMode _themeMode = ThemeMode.system;
 
-  
  @override
   void initState() {
     super.initState();
@@ -260,8 +203,9 @@ class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onEvent(DateTime timestamp, SendPort? sendPort) async {
     FlutterForegroundTask.updateService(
-      notificationTitle: 'Foreground service',
-      notificationText: 'seconds: $_eventCount',
+      notificationTitle: 'Foreground Service is running',
+      // notificationText: 'seconds: $_eventCount',
+      notificationText: 'Tap to return to the app',
     );
 
     // Send data to the main isolate.
@@ -296,6 +240,52 @@ class MyTaskHandler extends TaskHandler {
     _sendPort?.send('onNotificationPressed');
   }
 }
+
+//Notification speak...................................................................................................
+  Future<void> initPlatformState() async {
+    try {
+      isNotificationSound == true ? startListening() : null;
+    } catch(e) {
+      startListening();
+    }
+  }
+
+  void onData(NotificationEvent event) {
+    FlutterTts flutterTtsNotification = FlutterTts();
+    
+    try{
+      if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
+      {
+        if (event.toString().substring(0, 78) == 'NotificationEvent - package: com.alantodo.todoalan, title: Foreground service,'
+        || event.toString().substring(0, 89) == 'NotificationEvent - package: com.alantodo.todoalan, title: Foreground Service is running,')
+        {
+          debugPrint("error");
+        } else {
+          String message = event.toString();
+          flutterTtsNotification.speak(message.substring(50, message.lastIndexOf(",")));
+        }
+      } else {
+        debugPrint("error");
+      }
+      // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
+      print(event);
+    } catch(e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  void startListening() {
+      notifications = new Notifications();
+      try {
+        subscription = notifications.notificationStream!.listen(onData);
+      } on NotificationException catch (exception) {
+        debugPrint(exception.toString());
+      }
+  }
+
+  void stopListening() {
+    subscription.cancel();
+  }
 
 //Theme........................................................................................................
 class ThemeClass{
@@ -338,7 +328,6 @@ List<Color> colors11 = [Color(0xFFEC00BC), Color(0xFF04123F)];
 List<Color> colors12 = [Color(0xFFECBC), Color(0xFFC9F0E4)];
 List<Color> colors13 = [Color(0xFFA0B5EB), Color(0xFF3957ED)];
 List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];
-
 
 
 //Comment code.........................................................................................
@@ -468,43 +457,55 @@ List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];
 //   BackgroundFetch.finish(taskId);
 // }
 
+// @pragma('vm:entry-point')
+// void callbackDispatcher() {
+//   Workmanager().executeTask((taskName, inputData) {
+//     try {
+//     // flutterTtsGlobal.speak("ok done");
+//     Timer(Duration(minutes: 1), (){
+//     flutterTtsGlobal.speak("baabu namboothiri aanu. sivaanandhan");
+//     print("#####################################################################################ok done");
+//     }
+//     );
+//     // homepageState().initPlatformState;
+//     // flutterTtsGlobal.speak("sucess");
+//     } catch(err) {
+//       flutterTtsGlobal.speak(err.toString());
+//       Logger().e(err.toString()); // Logger flutter package, prints error on the debug console
+//       throw Exception(err);
+//     }
+//     return Future.value(true);
+//   });
+// }
+
+//background fetch.............................................................................................
+// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
+// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
+// @pragma('vm:entry-point')
+// void backgroundFetchHeadlessTask(HeadlessTask task) async {
+//   FlutterTts flutterTts = FlutterTts();
+//   String taskId = task.taskId;
+//   bool isTimeout = task.timeout;
+//   if (isTimeout) {
+//     // This task has exceeded its allowed running-time.  
+//     // You must stop what you're doing and immediately .finish(taskId)
+//     //flutterTts.speak("[BackgroundFetch] Headless task timed-out: $taskId");
+//     print("[BackgroundFetch] Headless task timed-out: $taskId");
+//     BackgroundFetch.finish(taskId);
+//     return;
+//   }  
+//   homepageState().initPlatformState()
+//   .then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+
+//   print('[BackgroundFetch] Headless event received.');
+//   BackgroundFetch.finish(taskId);
+// }
+
+// The callback function should always be a top-level function.
+// @pragma('vm:entry-point')
+// void startCallback() {
+//   // The setTaskHandler function must be called to handle the task in the background.
+//   FlutterForegroundTask.setTaskHandler(MyTaskHandler());
+// }
 //..........................................................................................................
 
-//Notification speak...................................................................................................
-  Future<void> initPlatformState() async {
-    try {
-      isNotificationSound == true ? startListening() : null;
-    } catch(e) {
-      startListening();
-    }
-  }
-
-  void onData(NotificationEvent event) {
-    try{
-      if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
-      {
-        if (event.toString().substring(0, 77) == 'NotificationEvent - package: com.alantodo.todoalan, title: Foreground service')
-        {
-          debugPrint("error");
-        } else {
-          String message = event.toString();
-          flutterTtsGlobal.speak(message.substring(50, message.lastIndexOf(",")));
-        }
-      } else {
-        debugPrint("error");
-      }
-      // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
-      print(event);
-    } catch(e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  void startListening() {
-      notifications = new Notifications();
-      try {
-        subscription = notifications.notificationStream!.listen(onData);
-      } on NotificationException catch (exception) {
-        debugPrint(exception.toString());
-      }
-  }

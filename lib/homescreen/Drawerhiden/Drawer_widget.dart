@@ -113,6 +113,8 @@ class _DrawerWidgetState extends State<DrawerWidget>
                                       setState(() {
                                         isNotificationSound = false;
                                       });
+                                      homepageState().closeReceivePort();
+                                      stopListening();
                                     } else {
                                       await prefs.setBool('isNotificationSound', true);
                                       setState(() {
