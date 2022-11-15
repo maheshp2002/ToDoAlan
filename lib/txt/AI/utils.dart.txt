@@ -209,7 +209,7 @@ class Utils {
   }
 
   static Future saveTask(BuildContext context) async {
-    addVoiceTask();
+    // addVoiceTask();
     Future.delayed(Duration(seconds: 1,), (){
       AISpeak.speak("please restart app to see new task"); 
    });

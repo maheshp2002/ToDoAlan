@@ -3,8 +3,10 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
+import 'package:todoalan/AI/leopard_manager.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
+import 'package:rhino_flutter/rhino.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -29,8 +31,14 @@ import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:leopard_flutter/leopard.dart';
+import 'package:leopard_flutter/leopard_error.dart';
+import 'package:leopard_flutter/leopard_transcript.dart';
 import 'package:background_stt/background_stt.dart';
-import 'package:flutter_speech/flutter_speech.dart';
+// import 'package:todoalan/AI/AI/API.dart';
+// import 'package:todoalan/AI/AI.dart';
+// import 'package:todoalan/AI/AI/utils.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
 //global variables................................................................................................
 
@@ -42,7 +50,7 @@ import 'package:flutter_speech/flutter_speech.dart';
   
 
 //for AI
-  String listeningText = "";
+  // String current_page = 'homepage';
   bool isEnable = false;
   SharedPreferences? prefs1;
 
@@ -75,178 +83,545 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
   User? user = FirebaseAuth.instance.currentUser;
   String text = '';
   bool isListening = false;
-  String isTitle = '';
+  bool isTitle = true;
   var _service = BackgroundStt();
-
-  //speech recognition
-  late SpeechRecognition _speech;
-
-  bool _speechRecognitionAvailable = false;
-  bool _isListening = false;
-
-  String transcription = '';
-
-
 
   final collectionReference = FirebaseFirestore.instance;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
+   
 
-startService(String? command,) async{
-      if(command == "open backup" || command == "openbackup") {
-        _service.speak("Opening backup", false);
-        Navigator.push(
-        context, MaterialPageRoute(builder: (context) => backupTask()));
+  //picovoice local variables
+  PicovoiceManager? _picovoiceManager;
+  bool _listeningForCommand = false;
+  bool _isError = false;
+  String _errorMessage = "";
+  final String accessKey = "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
 
-      } else if(command == "open theme" || command == "opentheme") {
-        _service.speak("Opening theme", false);
-        Navigator.push(
-        context, MaterialPageRoute(builder: (context) => themeSelect()));
+  //leopard local variables
+  bool isError = false;
+  String errorMessage = "";
+  final int maxRecordingLengthSecs = 120;
+  bool isRecording = false;
+  bool isProcessing = false;
+  double recordedLength = 0.0;
+  String statusAreaText = "";
+  String transcriptText = "";
+  List<LeopardWord> words = [];
 
-      } else if(command == "open profile" || command == "openprofile") {
-        _service.speak("Opening profile", false);
-        Navigator.push(
-        context, MaterialPageRoute(builder: (context) => profileUpdates()));
+  MicRecorder? _micRecorder;
+  Leopard? _leopard;
 
-      } else if(command == "open homepage" || command == "open home page" ) {
-      _service.speak("Opening homepage", false);
-        Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
-
-      } else if(command == "go back" || command == "goback") {
-        _service.speak("going back", false);
-        Navigator.of(context).pop();
-
-      } else if(command == "set title" || command == "title") {
-        setState(() {
-          listeningText = "Hold on...";
-        });
-        _service.speak("Please press the record button to set title.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
-        setState(() {
-          isEnable = true;
-          isTitle = 'title';
-          listeningText = "Now tap record button and speak...";
-        });
-
-      } else if(command == "set description" || command == "description") {
-        setState(() {
-          listeningText = "Hold on...";
-        });
-        _service.speak("Please press the record button to set description.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
-        setState(() {
-          isEnable = true;
-          isTitle = 'description';
-          listeningText = "Now tap record button and speak...";
-        });
-
-      } else if(command == "set time" || command == "time") {
-        setState(() {
-          listeningText = "Hold on...";
-        });
-        _service.speak("Please press the record button to set time.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
-        setState(() {
-          isEnable = true;
-          isTitle = 'time';
-          listeningText = "Now tap record button and speak...";
-        });
-
-      } else if(command == "category is work" || command == "is work") {
-        setState(() {
-          globalCategory = 'Work';
-        });
-
-        Fluttertoast.showToast(  
-        msg: "Setting category as Work",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as Work', false);
-        
-
-      } else if(command == "category is personal" || command == "is personal") {
-        setState(() {
-          globalCategory = 'Personal';
-        });
-                
-        Fluttertoast.showToast(  
-        msg: "Setting category as Personal",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as personal', false);
-
-      } else if(command == "category is sports" || command == "is sports") {
-        setState(() {
-          globalCategory = 'Sports';
-        });
-                
-        Fluttertoast.showToast(  
-        msg: "Setting category as Sports",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as Sports', false);
-
-      } else if(command == "category is education" || command == "is education") {
-        setState(() {
-          globalCategory = 'Education';
-        });
-                
-        Fluttertoast.showToast(  
-        msg: "Setting category as Education",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as Education', false);
-
-      } else if(command == "category is medical" || command == "is medical") {
-        setState(() {
-          globalCategory = 'Medical';
-        });      
-
-        Fluttertoast.showToast(  
-        msg: "Setting category as Medical",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as Medical', false);
-
-      } else if(command == "category is others" || command == "is others") {
-        setState(() {
-          globalCategory = 'Others';
-        });
-                
-        Fluttertoast.showToast(  
-        msg: "Setting category as Others",  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-        _service.speak('Setting category as Others', false);
-
-      } else if(command == "save task" || command == "task") {
-        _service.speak("saving task", false);
-        addVoiceTask();
-        
-        Future.delayed(Duration(seconds: 3), () => _service.speak("Please restart app to see new task", false));
-
-      } 
+startService(String? command) async{
+      if(command == "open backup" || command == "open backup") {
+      flutterTts.speak("Opening backup");
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => backupTask()));
+      } else if(command == "open theme" || command == "open theme") {
+      flutterTts.speak("Opening theme");
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => themeSelect()));
+      } else if(command == "open profile" || command == "open profile") {
+      flutterTts.speak("Opening profile");
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => profileUpdates()));
+      } else if(command == "open homepage" || command == "open homepage") {
+      flutterTts.speak("Opening homepage");
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+      } else if(command == "go back" || command == "go back") {
+      flutterTts.speak("Opening task page");
+      Navigator.of(context).pop();
+      }
 }
+
+//picovoice initilize...................................................................................................
+  void _initPicovoice() async {
+    String platform = Platform.isAndroid
+        ? "android"
+        : Platform.isIOS
+            ? "ios"
+            : throw PicovoiceRuntimeException(
+                "This demo supports iOS and Android only.");
+    String keywordAsset = "assets/pico_voice/hey-evoke_en_android_v2_1_0.ppn";
+    String contextAsset = "assets/pico_voice/Evoke_en_android_v2_1_0.rhn";
+
+    try {
+      _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
+          _wakeWordCallback, contextAsset, _inferenceCallback,
+          processErrorCallback: _errorCallback);
+      await _picovoiceManager?.start();
+    } on PicovoiceInvalidArgumentException catch (ex) {
+      _errorCallback(PicovoiceInvalidArgumentException(
+          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+    } on PicovoiceActivationException {
+      _errorCallback(
+          PicovoiceActivationException("AccessKey activation error."));
+    } on PicovoiceActivationLimitException {
+      _errorCallback(PicovoiceActivationLimitException(
+          "AccessKey reached its device limit."));
+    } on PicovoiceActivationRefusedException {
+      _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
+    } on PicovoiceActivationThrottledException {
+      _errorCallback(PicovoiceActivationThrottledException(
+          "AccessKey has been throttled."));
+    } on PicovoiceException catch (ex) {
+      _errorCallback(ex);
+    }
+  }
+
+    void _wakeWordCallback() {
+      setState(() {
+        _listeningForCommand = true;
+      });
+    }
+
+  void _inferenceCallback(RhinoInference inference) {  
+    if (inference.isUnderstood!) {
+      Map<String, String> slots = inference.slots!;
+      if (inference.intent == 'Navigation') {
+        _navigate(slots);
+      } else if (inference.intent == 'addtask') {
+        _task(slots);
+      } 
+      else if (inference.intent == 'setTime') {
+        _setTime(slots);
+      }
+
+    } else {
+        flutterTts.speak("Sorry I didn't understand that command!");
+        
+        Fluttertoast.showToast(  
+        msg: "Sorry I didn't understand that command..!",  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.BOTTOM,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+     
+    }
+    setState(() {
+      _listeningForCommand = false;
+    });
+  }
+
+  //task
+  _task(Map<String, String> slots){
+    if (slots['category'] == 'Work') {
+      flutterTts.speak("Setting category as Work");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Work..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Work';
+      });
+
+    } else if (slots['category'] == 'Personal') {
+      flutterTts.speak("Setting category as Personal");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Personal..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Personal';
+      });
+      
+    } else if (slots['category'] == 'Sports') {
+      flutterTts.speak("Setting category as Sports");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Sports..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Sports';
+      });
+      
+    } else if (slots['category'] == 'Education') {
+      flutterTts.speak("Setting category as Education");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Education..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Education';
+      });
+
+    } else if (slots['category'] == 'Medical') {
+      flutterTts.speak("Setting category as Medical");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Medical..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+     
+      setState(() {
+        globalCategory = 'Medical';
+      });
+      
+    } else if (slots['category'] == 'Others') {
+      flutterTts.speak("Setting category as Others");
+
+      Fluttertoast.showToast(  
+      msg: 'Setting category as Others..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        globalCategory = 'Others';
+      });
+      
+    } else if (slots['editTask'] == 'title') {
+      flutterTts.speak("Please press the record button to set title");
+
+      Fluttertoast.showToast(  
+      msg: 'Please press the record button to set title..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        // _listeningForCommand = false;
+        isEnable = true;
+        isTitle = true;
+      });
+      _picovoiceManager?.stop();
+
+    } else if (slots['editTask'] == 'description') {
+      flutterTts.speak("Please press the record button to set description");
+
+      Fluttertoast.showToast(  
+      msg: 'Please press the record button to set description..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      setState(() {
+        // _listeningForCommand = false;
+        isEnable = true;
+        isTitle = false;
+      });
+      _picovoiceManager?.stop();     
+    } else if (slots['save'] == 'save') {
+      flutterTts.speak("saving task");
+
+      Fluttertoast.showToast(  
+      msg: 'Saving task..!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      addVoiceTask();
+
+      Future.delayed(Duration(seconds: 5,), (){
+        flutterTts.speak("please restart app to see new task"); 
+
+        Fluttertoast.showToast(  
+        msg: 'Please restart app to see new task..!',  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.BOTTOM,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+
+    });
+
+    }
+  }
+
+  //time
+  _setTime(Map<String, String> slots) {
+    int hour = 0;
+    int minute = 0;
+
+    if (slots['hours'] != null) {
+      setState(() {
+        hour = int.parse(slots['hours']!);
+      });
+      
+      if (hour == 12) setState(() {hour = 0; });
+    }
+    if (slots['minutes'] != null) {
+      setState(() {
+        minute = int.parse(slots['minutes']!);
+      });
+      
+    }
+
+    if (slots['amPm'] == "pm") setState(() {hour += 12; });
+           
+    if (hour >= 24 || minute >= 60) {
+      flutterTts.speak("$hour:$minute is an invalid time.");
+
+      Fluttertoast.showToast(  
+      msg: '$hour:$minute is an invalid time...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 0, 0),  
+      textColor: Colors.white); 
+     
+    }
+
+    Future.delayed(Duration(seconds: 5), () {
+
+    
+    if (slots['amPm'] == "am") {
+      if(hour < 10) {
+        setState(() {timeController.text = "0" + hour.toString() + ":" + minute.toString();});
+
+      } else {
+        setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
+
+      }
+
+    } else {
+      setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
+
+    }
+      
+
+    flutterTts.speak("setting time ${timeController.text}.");     
+
+    Fluttertoast.showToast(  
+    msg: 'Setting time ${timeController.text}....!',  
+    toastLength: Toast.LENGTH_LONG,  
+    gravity: ToastGravity.BOTTOM,  
+    backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+    textColor: Colors.white); 
+
+    });
+  }
+
+  //navigation
+  _navigate(Map<String, String> slots){
+    if (slots['navigation'] == 'backup') {
+      flutterTts.speak("Opening backup page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening backup page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => backupTask()));
+
+    } else if (slots['navigation'] == 'homepage') {
+      flutterTts.speak("Opening homepage");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening homepage...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
+      
+    } else if (slots['navigation'] == 'theme') {
+      flutterTts.speak("Opening theme page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening theme page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => themeSelect()));
+
+    } else if (slots['navigation'] == 'profile') {
+      flutterTts.speak("Opening profile page");
+
+      Fluttertoast.showToast(  
+      msg: 'Opening profile page...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.push(
+      context, MaterialPageRoute(builder: (context) => profileUpdates()));
+
+    } else if (slots['back'] == 'back') {
+      flutterTts.speak("Going back");
+
+      Fluttertoast.showToast(  
+      msg: 'Going back...!',  
+      toastLength: Toast.LENGTH_LONG,  
+      gravity: ToastGravity.BOTTOM,  
+      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      textColor: Colors.white); 
+
+      Navigator.of(context).pop();
+
+    }
+  }
+
+    void _errorCallback(PicovoiceException error) {
+      setState(() {
+        _isError = true;
+        _errorMessage = error.message!;
+      });
+    }
+
+//initializing leopard.................................................................................................
+  Future<void> initLeopard() async {
+    String platform = Platform.isAndroid
+        ? "android"
+        : Platform.isIOS
+            ? "ios"
+            : throw LeopardRuntimeException(
+                "This demo supports iOS and Android only.");
+    String modelPath = "assets/pico_voice/Evoke--leopard-v1.1.0--22-11-08--07-38-33.pv";
+
+    try {
+      _leopard = await Leopard.create(accessKey, modelPath,
+          enableAutomaticPunctuation: true);
+      _micRecorder = await MicRecorder.create(
+          _leopard!.sampleRate, recordedCallback, errorCallback);
+    } on LeopardInvalidArgumentException catch (ex) {
+      errorCallback(LeopardInvalidArgumentException(
+          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+    } on LeopardActivationException {
+      errorCallback(LeopardActivationException("AccessKey activation error."));
+    } on LeopardActivationLimitException {
+      errorCallback(LeopardActivationLimitException(
+          "AccessKey reached its device limit."));
+    } on LeopardActivationRefusedException {
+      errorCallback(LeopardActivationRefusedException("AccessKey refused."));
+    } on LeopardActivationThrottledException {
+      errorCallback(
+          LeopardActivationThrottledException("AccessKey has been throttled."));
+    } on LeopardException catch (ex) {
+      errorCallback(ex);
+    }
+  }
+
+  Future<void> recordedCallback(double length) async {
+    if (length < maxRecordingLengthSecs) {
+      setState(() {
+        recordedLength = length;
+        statusAreaText =
+            "Recording : ${length.toStringAsFixed(1)} / $maxRecordingLengthSecs seconds";
+      });
+    } else {
+      setState(() {
+        recordedLength = length;
+        statusAreaText = "Transcribing, please wait...";
+      });
+      await _stopRecording();
+    }
+  }
+
+  void errorCallback(LeopardException error) {
+    setState(() {
+      isError = true;
+      errorMessage = error.message!;
+    });
+  }
+
+  Future<void> _startRecording() async {
+    if (isRecording || _micRecorder == null) {
+      return;
+    }
+
+    try {
+      await _micRecorder!.startRecord();
+      setState(() {
+        isRecording = true;
+      });
+    } on LeopardException catch (ex) {
+      print("Failed to start audio capture: ${ex.message}");
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    if (!isRecording || _micRecorder == null) {
+      return;
+    }
+
+    try {
+      File recordedFile = await _micRecorder!.stopRecord();
+      setState(() {
+        statusAreaText = "Transcribing, please wait...";
+        isRecording = false;
+      });
+      _processAudio(recordedFile);
+    } on LeopardException catch (ex) {
+      print("Failed to stop audio capture: ${ex.message}");
+    }
+  }
+
+  Future<void> _processAudio(File recordedFile) async {
+    if (_leopard == null) {
+      return;
+    }
+
+    Stopwatch stopwatch = Stopwatch()..start();
+    LeopardTranscript? result = await _leopard?.processFile(recordedFile.path);
+    Duration elapsed = stopwatch.elapsed;
+
+    String audioLength = recordedLength.toStringAsFixed(1);
+    String transcriptionTime =
+        (elapsed.inMilliseconds / 1000).toStringAsFixed(1);
+
+    setState(() {
+      statusAreaText =
+          "Transcribed $audioLength(s) of audio in $transcriptionTime(s)";
+      transcriptText = result?.transcript ?? "";
+      isTitle ? titleController.text = result?.transcript ?? ""
+      : descriptionController.text = result?.transcript ?? "";
+      words = result?.words ?? [];
+      Future.delayed(Duration(seconds: 2), () {
+        setState(() {
+           isEnable = false;
+        }); 
+
+        flutterTts.speak(
+          isTitle ? 'setting title as $transcriptText'
+          : 'setting description as $transcriptText'
+        );
+
+        Fluttertoast.showToast(  
+        msg: isTitle ? 'Title is $transcriptText' : 'Description is $transcriptText',  
+        toastLength: Toast.LENGTH_LONG,  
+        gravity: ToastGravity.TOP,  
+        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+        textColor: Colors.white); 
+
+        _picovoiceManager?.start();
+
+      });
+      
+    });
+  }
+
 
 //initializing todo.................................................................................................
   setupTodo() async {
@@ -260,183 +635,6 @@ startService(String? command,) async{
       });
     }
   }
-
-//speech recognition..................................................................................................
-  // Platform messages are asynchronous, so we initialize in an async method.
-  void activateSpeechRecognizer() {
-    print('_MyAppState.activateSpeechRecognizer... ');
-    _speech = SpeechRecognition();
-    _speech.setAvailabilityHandler(onSpeechAvailability);
-    _speech.setRecognitionStartedHandler(onRecognitionStarted);
-    _speech.setRecognitionResultHandler(onRecognitionResult);
-    _speech.setRecognitionCompleteHandler(onRecognitionComplete);
-    _speech.setErrorHandler(errorHandler);
-    _speech.activate('fr_FR').then((res) {
-      setState(() => _speechRecognitionAvailable = res);
-    });
-  }
-
- void start() => _speech.activate('en_IN').then((_) {
-        return _speech.listen().then((result) {
-          print('_MyAppState.start => result $result');
-          setState(() {
-            listeningText = "Listening...";
-            _isListening = result;
-          });
-        });
-      });
-
-
-//time conversions.......................................................
-  voiceTime(String time) {
-    int hour = 0;
-    int minute = 0;
-    // 5:40 a.m.
-    String tempHour = "";
-    String tempMinute = "";
-
-    if (time.substring(1, 2) == ":") 
-    {
-      setState(() {
-        tempHour = time.substring(0, 1);
-        tempMinute = time.substring(2, 5);
-        hour = int.parse(tempHour);
-        minute = int.parse(tempMinute);  
-        });
-    } else {
-      setState(() {
-        tempHour = time.substring(0, 2);
-        tempMinute = time.substring(3, 6);
-        hour = int.parse(tempHour); 
-        minute = int.parse(tempMinute);
-      });
-    }
-
-
-    try{
-      if(time.substring(6, 10) == "p.m." || time.substring(6, 10) == ".p.m" 
-      || time.substring(6, 9) == "p.m" || time.substring(6, 8) == "pm")
-      {
-        setState(() {hour += 12;});
-      }
-
-    } catch(e){
-      if (time.substring(5, 9) == "p.m." || time.substring(5, 9) == ".p.m" 
-      || time.substring(5, 8) == "p.m" || time.substring(5, 7) == "pm") 
-      {
-        setState(() {hour += 12;});
-      }
-
-    } 
-
-    if (hour >= 24 || minute >= 60) {
-      flutterTts.speak("$hour:$minute is an invalid time.");
-
-      Fluttertoast.showToast(  
-      msg: '$hour:$minute is an invalid time...!',  
-      toastLength: Toast.LENGTH_LONG,  
-      gravity: ToastGravity.BOTTOM,  
-      backgroundColor: Color.fromARGB(255, 255, 0, 0),  
-      textColor: Colors.white); 
-     
-    }
- 
-    Future.delayed(Duration(seconds: 5), () {
-
-    try{    
-      if(time.substring(6, 10) == "a.m." || time.substring(6, 10) == ".a.m" 
-      || time.substring(6, 9) == "a.m" || time.substring(6, 8) == "am") {
-        if(hour < 10) {
-          setState(() {timeController.text = "0" + hour.toString() + ":" + minute.toString();});
-
-        } else {
-          setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
-
-        }
-      } else {
-        setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
-
-      }
-
-    } catch(e){
-      if (time.substring(5, 9) == "a.m." || time.substring(5, 9) == ".a.m" 
-      || time.substring(5, 8) == "a.m" || time.substring(5, 7) == "am") {
-        if(hour < 10) {
-          setState(() {timeController.text = "0" + hour.toString() + ":" + minute.toString();});
-
-        } else {
-          setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
-
-        }
-
-      } else {
-        setState(() {timeController.text = hour.toString() + ":" + minute.toString();});
-
-      }
-    }
-  });
-  }
-
-  void cancel() =>
-      _speech.cancel().then((_) => setState(() => _isListening = false));
-
-  void stop() => _speech.stop().then((_) {
-        setState(() => _isListening = false);
-        _service.resumeListening();
-
-        Future.delayed(Duration(seconds: 2), () {
-
-        setState(() {
-           isEnable = false;
-        }); 
-        _service.speak(
-          isTitle == 'title' ? 'setting title as $transcription'
-          : isTitle == 'description' ? 'setting description as $transcription'
-          : 'setting time ${transcription}', false
-        );
-
-        Fluttertoast.showToast(  
-        msg: isTitle == 'title' ? 'Title is $transcription' : isTitle == 'description' ?
-        'Description is $transcription' : 'time is ${transcription}',  
-        toastLength: Toast.LENGTH_LONG,  
-        gravity: ToastGravity.TOP,  
-        backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-        textColor: Colors.white); 
-
-      });
-      });
-
-  void onSpeechAvailability(bool result) =>
-      setState(() => _speechRecognitionAvailable = result);
-
-  void onRecognitionStarted() {
-    setState(() => _isListening = true);
-  }
-
-  void onRecognitionResult(String text) {
-    print('_MyAppState.onRecognitionResult... $text');
-    setState(() => transcription = text);
-  }
-
-  void onRecognitionComplete(String text) {
-    print('_MyAppState.onRecognitionComplete... $text');
-    setState(() => _isListening = false);
-
-
-    Future.delayed(Duration(milliseconds: 100), () {
-      setState(() {
-        listeningText = "Hold on...";
-      });
-
-      isTitle == 'time' ? voiceTime(transcription) : 
-      isTitle == 'title' ? setState((){titleController.text = transcription;})
-      : setState((){descriptionController.text = transcription;});
-
-      stop(); 
-    });
-  }
-
-  void errorHandler() => activateSpeechRecognizer();
 
 //save data to todo..................................................................................................
   void saveTodo() {
@@ -469,13 +667,10 @@ startService(String? command,) async{
 
     _service.getSpeechResults().onData((data) {
       print("getSpeechResults: ${data.result} , ${data.isPartial} [STT Mode]");
-      // _service.speak("Hey", false);
+      flutterTts.speak(data.result.toString());
 
       startService(data.result);
     });
-    
-    activateSpeechRecognizer();
-
     // setState(() {
     //   recordedLength = 0.0;
     //   statusAreaText =
@@ -493,6 +688,8 @@ startService(String? command,) async{
   void dispose() {
   // _closeReceivePort();
   WidgetsBinding.instance!.removeObserver(this);
+  _picovoiceManager?.stop();
+  _stopRecording();
   super.dispose();
   }
 
@@ -543,7 +740,7 @@ startService(String? command,) async{
 
 //check if app is in background........................................................
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async{
+  void didChangeAppLifecycleState(AppLifecycleState state) {
   super.didChangeAppLifecycleState(state);
 
   final isBg = state == AppLifecycleState.paused;
@@ -552,21 +749,41 @@ startService(String? command,) async{
 
   isBg || isScreen == false || isClosed == true
       ? runTask(isClosed)
-      : await _service.resumeListening();
+
+      : _picovoiceManager?.start();
   }
 
 
-runTask(bool isClosed) async{
+runTask(bool isClosed) {
   try{
     isNotificationSound == true ? _startForegroundTask() : null;
 
-    isClosed ? await _service.pauseListening() : null;  
+    // isClosed ? _stopRecording() : null;
+    // isClosed ? _picovoiceManager?.stop() : null;
+
+    try{
+      _stopRecording();
+    } catch(e) {
+      print(e);
+    }
+
+    try{
+      _picovoiceManager?.stop();
+    } catch(e) {
+      print(e);
+    }
 
   } catch(e) {
     _startForegroundTask();
     
     try{
-      await _service.resumeListening();
+      _stopRecording();
+    } catch(e) {
+      print(e);
+    }
+
+    try{
+      _picovoiceManager?.stop();
     } catch(e) {
       print(e);
     }
@@ -744,31 +961,52 @@ addVoiceTask() async{
       child:   Row(mainAxisAlignment: MainAxisAlignment.start,
     children: [
     AvatarGlow(
-    animate: _isListening,
+    animate: isRecording,
     endRadius: 35,
     glowColor: Color.fromARGB(255, 255, 17, 1),
-    child: GestureDetector(
-    // onLongPress: () => stop(),
-    child:  FloatingActionButton(
-    backgroundColor: _isListening ? Colors.greenAccent : Colors.blue,
-    child: Icon(_isListening ? Icons.mic : Icons.mic_none, size: 20),
-    onPressed: () => !_isListening ? start() : stop()    
+    child: FloatingActionButton(
+    backgroundColor: isRecording ? Colors.greenAccent : Colors.blue,
+    child: Icon(isRecording ? Icons.mic : Icons.mic_none, size: 20),
+    onPressed: isError ? null : isRecording ? _stopRecording : _startRecording,      
+      // toggleRecording,
     ),
-    )),  
+    ),  
     Container(
     width: 100,
     height: 300,
-    child: Text(transcription, 
+    child: Text(transcriptText, 
     style: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))
+    // SingleChildScrollView(
+    // reverse: true,  
+    // child:
+    // SubstringHighlight(
+    // text: text,
+    // terms: Command.all,
+    // textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
+    // textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
+    // ))
     ),
     ],),
     ) : null,
-    floatingActionButton: FloatingActionButton(onPressed: (){
+    floatingActionButton: GestureDetector(onLongPress: () { 
+      // Permission.microphone;
+      // isEnable ?
+      // setState(() {
+      //   flutterTts.speak("see you again"); 
+      //   isEnable = false;
+      // }) 
+      // : setState(() {
+      //   flutterTts.speak("Hey there, I'm here to help you"); 
+      //   isEnable = true;
+      // });
+
+    },
+    child: FloatingActionButton(onPressed: (){
       addTodo();
     },
     backgroundColor: Color.fromARGB(255, 255, 178, 89),
     child: Icon(FontAwesomeIcons.plus, color: Colors.white, ),
-    ),
+    ),),
 
     appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -811,12 +1049,11 @@ addVoiceTask() async{
       child:
       ListView(children: [
 
-                    isEnable == true ?
-                    Padding(padding: EdgeInsets.only(left: 5),
-                    child: Text(listeningText,
+                    isRecording == true ?
+                    Text("Listening...",
                     style: TextStyle(
                     color: Colors.grey.withOpacity(0.8),
-                    fontSize: 13)))
+                    fontSize: 13))
                     : Text(""),
 
                     FadeAnimation(
@@ -1658,4 +1895,101 @@ makeListTile(Todo todo, index) {
   // }
 
 
+//...........................................................................................................
+    // onStart() {
+    //   WidgetsFlutterBinding.ensureInitialized();
+    //   //final service = FlutterBackgroundService();
+    //   // Run taks here :
+    //   startListening(); 
+    //   service.onDataReceived.listen((event) { 
+    //     // !IMPORTANT 
+    //     // must include print statement to pass null check: 
+    //     // other wise you get error: 
+    //     print(event!); 
+    //     // use Contain key or contain value: 
+    //     // for ignore null errors :  
+    //     // if (event.containsKey('action')) {  
+    //     //   String changer = 'game'; 
+    //     //   return; 
+    //     // } 
+    //     // startListening(); 
+    //     service.setNotificationInfo(
+    //       title: "Evoke",
+    //       content: "Updated at ${DateTime.now()}",
+    //     );
+    //   });
 
+
+// //Notification speak...................................................................................................
+//   Future<void> initPlatformState() async {
+//     startListening();
+//   }
+
+//   void onData(NotificationEvent event) {
+//     if (event.toString().substring(0, 50) == "NotificationEvent - package: com.alantodo.todoalan")
+//     {
+//       String message = event.toString();
+//       flutterTts.speak(message.substring(50, message.lastIndexOf(",")));
+//     } else {
+//       debugPrint("error");
+//     }
+//     // NotificationEvent - package: com.alantodo.todoalan, title: mac, message: aaa, timestamp: 2022-10-29 18:51:01.694027
+//      print(event);
+//   }
+
+//   void startListening() {
+//       _notifications = new Notifications();
+//       try {
+//         _subscription = _notifications.notificationStream!.listen(onData);
+//       } on NotificationException catch (exception) {
+//         print(exception);
+//       }
+//   }
+
+
+//...........................................................
+  // Platform messages are asynchronous, so we initialize in an async method.
+  // Future<void> initPlatformStateForBackground() async {
+  //   // Configure BackgroundFetch.
+  //   int status = await BackgroundFetch.configure(BackgroundFetchConfig(
+  //       minimumFetchInterval: 15,
+  //       stopOnTerminate: false,
+  //       enableHeadless: true,
+  //       requiresBatteryNotLow: false,
+  //       requiresCharging: false,
+  //       requiresStorageNotLow: false,
+  //       requiresDeviceIdle: false,
+  //       requiredNetworkType: NetworkType.NONE
+  //   ),   (String taskId) async {  // <-- Event handler
+  //     // This is the fetch-event callback.
+  //     initPlatformState().then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+  //     //flutterTts.speak('[BackgroundFetch] configure success: ');
+  //     print("[BackgroundFetch] Event received $taskId");
+  //     // setState(() {
+  //     //   _events.insert(0, new DateTime.now());
+  //     // });
+  //     // IMPORTANT:  You must signal completion of your task or the OS can punish your app
+  //     // for taking too long in the background.
+  //     BackgroundFetch.finish(taskId);
+  //   },   
+  //   (String taskId) async {  // <-- Task timeout handler.
+  //     // This task has exceeded its allowed running-time.  You must stop what you're doing and immediately .finish(taskId)
+  //     print("[BackgroundFetch] TASK TIMEOUT taskId: $taskId");
+  //     BackgroundFetch.finish(taskId);
+  //   }
+  //   );
+  //   initPlatformState().then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
+  //   print('[BackgroundFetch] configure success: $status');
+  //   setState(() {
+  //     _status = status;
+  //   });        
+
+  //   // If the widget was removed from the tree while the asynchronous platform
+  //   // message was in flight, we want to discard the reply rather than calling
+  //   // setState to update our non-existent appearance.
+  //   if (!mounted) return;
+  // }
+ 
+ //local variables for text to speech ..................................................................................................
+  // late Notifications _notifications;
+  // late StreamSubscription<NotificationEvent> _subscription;

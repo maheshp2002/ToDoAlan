@@ -8,13 +8,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
-  alan_voice:
-    dependency: "direct dev"
-    description:
-      name: alan_voice
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.6.0"
   archive:
     dependency: transitive
     description:
@@ -43,6 +36,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  background_stt:
+    dependency: "direct dev"
+    description:
+      name: background_stt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.6"
   boolean_selector:
     dependency: transitive
     description:
@@ -286,6 +286,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.2"
+  flutter_speech:
+    dependency: "direct dev"
+    description:
+      name: flutter_speech
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   flutter_switch:
     dependency: "direct dev"
     description:
@@ -492,13 +499,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  package_info:
-    dependency: transitive
-    description:
-      name: package_info
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.2"
   path:
     dependency: transitive
     description:

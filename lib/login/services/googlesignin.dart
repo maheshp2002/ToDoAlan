@@ -118,7 +118,20 @@ Future<String> uploadFile(_image) async {
 
               try{
                 if (isEdited == true) {
-                  debugPrint("true");
+                  try{
+                    if (status == true) {
+                      //no of task
+                      FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+                      .collection("taskLength").doc('task').update({
+                        "Personal": FieldValue.increment(1),
+                        "Sports": FieldValue.increment(2),
+                      });
+                    } else {
+                      debugPrint("status false");
+                    }
+                  }catch(e){
+                    debugPrint(e.toString());
+                  }
                 } else {
                   FirebaseFirestore.instance.collection("Users").doc(user!.email!)
                   .collection("taskLength").doc("task").set({
@@ -129,7 +142,7 @@ Future<String> uploadFile(_image) async {
                       'Medical': 0,
                       'Others': 0,
                       'isEdited': true,
-                    });
+                    }).then((value) => {updateTaskLength});
                 }
               } catch(e) {
                 Fluttertoast.showToast(  
@@ -139,6 +152,23 @@ Future<String> uploadFile(_image) async {
                 backgroundColor: Color.fromARGB(255, 248, 17, 0),  
                 textColor: Colors.white); 
               }
+}
+
+updateTaskLength() async{
+  try{               
+    if (status == true) {
+      //no of task
+      await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
+      .collection("taskLength").doc('task').update({
+        "Personal": FieldValue.increment(1),
+        "Sports": FieldValue.increment(2),
+      });
+    } else {
+      debugPrint("status false");
+    }
+  }catch(e){
+    debugPrint(e.toString());
+  }
 }
 //..........................................................................................
 // Image Picker

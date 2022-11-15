@@ -1,38 +1,15 @@
-import 'dart:convert';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:todoalan/AI/AI/API.dart';
-import 'package:todoalan/AI/AI/utils.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:todoalan/addTask/ToDo.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:todoalan/homescreen/homescreen.dart';
-// import 'package:todoalan/AI/AI.dart';
-// import 'package:avatar_glow/avatar_glow.dart';
 
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
-
-class FieldsState{
-  String? title;
-  String? description;
-  String? hours;
-  String? minutes;
-
-  FieldsState(this.title, this.description, this.hours, this.minutes);
-
-  Map<String, dynamic> toJson() => {
-    'title': title,
-    'description': description,
-    'hours': hours,
-    'minutes': minutes
-  };
-}
 
 class addTask extends StatefulWidget {
 
@@ -54,12 +31,6 @@ class addTask extends StatefulWidget {
   String globalCategory = "";
   String hr = "";
 
-  //final currentState = FieldsState("", "", "", "");
-
-  // void setVisuals() {
-  //   var visuals = jsonEncode(currentState);
-  //   AlanVoice.setVisualState(visuals);
-  // }
 
 class addTaskState extends State<addTask> {
   
@@ -68,7 +39,6 @@ class addTaskState extends State<addTask> {
   addTaskState({required this.todo, required this.isEdit});
 
   SelectedColor selected = SelectedColor.Work;
-  //List<Todo> list = [];
 
   SharedPreferences? sharedPreferences; //calling instance of sharedpreference
   
@@ -117,11 +87,6 @@ void initState() {
 
     setState(() {});
   }
-
-  // setState(() {
-  //   speech.stop();
-  //   print("###################################$speech");
-  // });
   
 }
 
@@ -137,9 +102,7 @@ if (timepick != null) {
     hours = timepick.toString().substring(10, 12);
     minutes = timepick.toString().substring(13, 15);
   });
-  // currentState.hours = hours;
-  // currentState.minutes = minutes;
-  // setVisuals();
+
 } 
 }
 
@@ -148,36 +111,6 @@ if (timepick != null) {
     var we = MediaQuery.of(context).size.width;
     var he = MediaQuery.of(context).size.height;
     return Scaffold(
-    //   floatingActionButton: isEnable ? Container(
-    //   padding: EdgeInsets.only(left: 20),
-    //   alignment: Alignment.bottomLeft,
-    //   height: 50,
-    //   child:   Row(mainAxisAlignment: MainAxisAlignment.start,
-    // children: [
-    // AvatarGlow(
-    // animate: isListening,
-    // endRadius: 35,
-    // glowColor: Color.fromARGB(255, 255, 17, 1),
-    // child: FloatingActionButton(
-    // backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
-    // child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
-    // onPressed: toggleRecording,
-    // ),
-    // ),  
-    // Container(
-    // width: 100,
-    // height: 300,
-    // child: SingleChildScrollView(
-    // reverse: true,  
-    // child:
-    // SubstringHighlight(
-    // text: text,
-    // terms: Command.all,
-    // textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
-    // textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
-    // ))),
-    // ],),
-    //   ) : null,
       backgroundColor: Color.fromARGB(204, 244, 246, 253),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -203,10 +136,6 @@ if (timepick != null) {
                       ),
                       child: IconButton(
                           onPressed: () {
-                            // setState(() {
-                            //   isEdit = false;
-                            //   current_page = 'homepage';
-                            // });
                             Navigator.of(context).pop();
                           },
                           icon: const Icon(
@@ -225,8 +154,6 @@ if (timepick != null) {
                   child: TextFormField(
                     onChanged: (data) {
                       todo.title = data;
-                      // currentState.title = data;
-                      // setVisuals();
                     },
                     controller: titleController,
                     decoration: InputDecoration(
@@ -251,8 +178,6 @@ if (timepick != null) {
                   child: TextFormField(
                     onChanged: (data) {
                       todo.description = data;
-                      // currentState.description = data;
-                      // setVisuals();
                     },                    
                     controller: descriptionController,
                     decoration: InputDecoration(
@@ -446,15 +371,7 @@ if (timepick != null) {
                     backgroundColor: Colors.red, 
                     textColor: Colors.white);   
                   }  
-                  // //for id
-                  //   try{
-                  //     await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
-                  //     .collection("ID").doc("ID").set({
-                  //       'id': docids,
-                  //     });
-                  //   }catch(e) {
-                  //     debugPrint( "######################################################"+e.toString());
-                  //   }                                    
+                                  
                 }
 
                 //setting scheduled notification
@@ -477,9 +394,7 @@ if (timepick != null) {
                       gravity: ToastGravity.BOTTOM,  
                       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
                       textColor: Colors.white);                               
-                // setState(() {
-                //   current_page = 'homepage';
-                // });
+
                 Navigator.pop(context, todo);
 
                 titleController.clear();
@@ -633,34 +548,7 @@ if (timepick != null) {
                 ),
               ),
             ),
-            // GestureDetector(
-            //   onTap: () {
-            //     setState(() {
-            //       selected = SelectedColor.Family;
-            //       selectedCategory = "Family";
-            //     });
-            //   },
-            //   child: Container(
-            //     margin: const EdgeInsets.only(left: 14),
-            //     alignment: Alignment.center,
-            //     width: 90,
-            //     height: 40,
-            //     decoration: BoxDecoration(
-            //         borderRadius: BorderRadius.circular(20),
-            //         border: Border.all(
-            //             color: selected == SelectedColor.Family
-            //                 ? Colors.blue
-            //                 : Colors.white,
-            //             width: selected == SelectedColor.Family ? 3 : 0),
-            //         color: selected == SelectedColor.Family
-            //             ? Colors.orange.withOpacity(0.6)
-            //             : Colors.grey.withOpacity(0.5)),
-            //     child: const Text(
-            //       'Family',
-            //       style: TextStyle(color: Colors.white),
-            //     ),
-            //   ),
-            // ),
+
              GestureDetector(
               onTap: () {
                 setState(() {
@@ -722,26 +610,6 @@ if (timepick != null) {
       ],
     );
   }
-
-  Future toggleRecording() => SpeechApi().toggleRecording(
-    onResult: (text) => setState(() {
-      setState(() {
-        isListening = true;
-      });
-      this.text = text;
-      Future.delayed(Duration(milliseconds: 1), () {
-         Utils().scanText(text, context);
-      });
-      Future.delayed(Duration(milliseconds: 10), () {
-      setState(() {
-        isListening = false;
-      });
-      });
-    }),
-    onListening: (isListening) {
-     // setState(() => this.isListening = isListening);
-      },
-  );
 
 //date.......................................................................................................
   taskDays() {
@@ -1012,51 +880,4 @@ getCategory(String cat) async{
 
 
 }
-
-//add task via  voice...........................................................................................
-addVoiceTask() async{
-  WidgetsFlutterBinding.ensureInitialized();
-
-  prefs1 = await SharedPreferences.getInstance();
-
-  List todos = [];
-  int id = Random().nextInt(2147483637);
-  List<int> date = [1, 2, 3, 4, 5, 6, 7];
-  User? user = FirebaseAuth.instance.currentUser;
-  Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
-
-  String hourstext = timeController.text.toString().substring(0, 2);
-  String minutestext = timeController.text.toString().substring(3, 5);   
-  
-  t.id = id;
-  t.title = titleController.text;
-  t.description = descriptionController.text;
-  t.time = timeController.text;
-  t.category = globalCategory;
-  t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
-
-  //setting scheduled notification
-                          
-  NotificationApi.showScheduledNotification(
-  id: t.id,
-  title: titleController.text,
-  body: descriptionController.text,
-  payload: descriptionController.text,
-  hh:  int.parse(hourstext),
-  mm: int.parse(minutestext),
-  ss: int.parse("00"),
-  date: date,
-  scheduledDate: DateTime.now().add(Duration(seconds: 10))
-  );
-  
-  todos.add(t); 
-
-  List items = todos.map((e) => e.toJson()).toList();
-  prefs1!.setString(user!.email!, jsonEncode(items));
-
- // titleController.clear();
-  //descriptionController.clear();
-
-}
-
 
