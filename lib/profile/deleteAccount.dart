@@ -1,14 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:todoalan/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
 class deleteAccount extends StatefulWidget {
@@ -299,15 +299,6 @@ class _deleteAccountState extends State<deleteAccount> {
               );  
 
           }  
-
-              // Navigator.of(context).pop();  
-              // Fluttertoast.showToast(  
-              // msg: 'This is under maintenance..!',  
-              // toastLength: Toast.LENGTH_LONG,  
-              // gravity: ToastGravity.BOTTOM,  
-              // backgroundColor: Color.fromARGB(255, 253, 17, 0),  
-              // textColor: Colors.white  
-              // ); 
             }
           )
    ])

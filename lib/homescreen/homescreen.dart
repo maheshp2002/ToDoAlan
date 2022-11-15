@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 import 'dart:isolate';
@@ -16,21 +15,19 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:notifications/notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/addTask/backupTask.dart';
+import 'package:flutter_speech/flutter_speech.dart';
+import 'package:background_stt/background_stt.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todoalan/themeSelect/themeSelect.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:todoalan/Animation/linearprogress.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:picovoice_flutter/picovoice_error.dart';
-import 'package:picovoice_flutter/picovoice_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:background_stt/background_stt.dart';
-import 'package:flutter_speech/flutter_speech.dart';
 
 //global variables................................................................................................
 

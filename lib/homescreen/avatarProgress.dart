@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/photoView/photoView.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Progerss_Avater extends StatefulWidget {
   @override

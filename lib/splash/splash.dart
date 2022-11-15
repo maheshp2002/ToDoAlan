@@ -1,9 +1,9 @@
-import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
-import 'package:todoalan/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todoalan/homescreen/Drawerhiden/hidendrawer.dart';
 
 
 class Splash extends StatefulWidget {
@@ -64,14 +64,6 @@ class Splash extends StatefulWidget {
         ),
       ),
       ),
-      // bottomSheet: Container(color: Theme.of(context).scaffoldBackgroundColor,
-      //   child: 
-
-      // Row(mainAxisAlignment: MainAxisAlignment.center,
-      //   children:  [ 
-      //   Text("from - \n ", textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).hintColor,fontFamily: 'BrandonL'))]),
-
-      //   ),
     );
 }
   getTheme() {

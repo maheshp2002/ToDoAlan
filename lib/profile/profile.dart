@@ -1,21 +1,16 @@
 import 'dart:io';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:todoalan/Animation/fadeAnimation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/profile/deleteAccount.dart';
-import 'package:todoalan/AI/AI.dart';
-import 'package:todoalan/homescreen/homescreen.dart';
-import 'package:avatar_glow/avatar_glow.dart';
-// import 'package:todoalan/AI/AI/API.dart';
-// import 'package:todoalan/AI/AI/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todoalan/Animation/fadeAnimation.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class profileUpdates extends StatefulWidget {
   profileUpdates({Key? key}) : super(key: key);
@@ -108,57 +103,7 @@ Future<String> uploadFile(_image) async {
   @override
   Widget build(BuildContext context) {
 
-  // Future toggleRecording() => SpeechApi().toggleRecording(
-  //   onResult: (text) => setState(() {
-  //     setState(() {
-  //       isListening = true;
-  //     });
-  //     this.text = text;
-  //     Future.delayed(Duration(milliseconds: 1), () {
-  //        Utils().scanText(text, context);
-  //     });
-  //     Future.delayed(Duration(milliseconds: 10), () {
-  //     setState(() {
-  //       isListening = false;
-  //     });
-  //     });
-  //   }),
-  //   onListening: (isListening) {
-  //    // setState(() => this.isListening = isListening);
-  //     },
-  // );
-
   return Scaffold(
-    //    floatingActionButton: isEnable ? Container(
-    //   padding: EdgeInsets.only(left: 20),
-    //   alignment: Alignment.bottomLeft,
-    //   height: 50,
-    //   child:   Row(mainAxisAlignment: MainAxisAlignment.start,
-    // children: [
-    // AvatarGlow(
-    // animate: isListening,
-    // endRadius: 35,
-    // glowColor: Color.fromARGB(255, 255, 17, 1),
-    // child: FloatingActionButton(
-    // backgroundColor: isListening ? Colors.greenAccent : Colors.blue,
-    // child: Icon(isListening ? Icons.mic : Icons.mic_none, size: 20),
-    // onPressed: toggleRecording,
-    // ),
-    // ),  
-    // Container(
-    // width: 100,
-    // height: 300,
-    // child: SingleChildScrollView(
-    // reverse: true,  
-    // child:
-    // SubstringHighlight(
-    // text: text,
-    // terms: Command.all,
-    // textStyle: TextStyle(fontSize: 10.0, color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'),
-    // textStyleHighlight: TextStyle( fontSize: 10.0, color: Colors.red, fontFamily: 'BrandonBI'),
-    // ))),
-    // ],),
-    //   ) : null,   
       appBar: AppBar(
         elevation: 0,
         backgroundColor: isloading ? Color(0Xff191f26) : Theme.of(context).scaffoldBackgroundColor,

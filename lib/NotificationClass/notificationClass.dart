@@ -1,11 +1,10 @@
 import 'dart:async';
-
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationApi {
   static final _notifications = FlutterLocalNotificationsPlugin();
@@ -84,26 +83,13 @@ static Future init ({bool initScheduled = false}) async {
  final iOS = DarwinInitializationSettings ();
  final settings = InitializationSettings(android: android, iOS: iOS);
 
-//if app is closed 
-//final details = await _notifications.getNotificationAppLaunchDetails();
-// if (details != null && details.didNotificationLaunchApp) {
-//   // onNotifications.add(details.payload);
-//   // await flutterTts.speak(details.payload.toString());
-//   // Future.delayed(Duration(seconds: 10),() async{
-//   //   await flutterTts.stop();
-//   // });
-  
-// }
-
  await _notifications.initialize(
     settings,
     onDidReceiveNotificationResponse: (details) async {
       //await flutterTts.speak("details.payload.toString()");
       selectNotificationStream.add(details.payload.toString());
     },
-    // onSelectNotification: (payload) async {
-    //   onNotifications.add(payload);
-    // }
+
   );
 
   if (initScheduled) {
@@ -128,31 +114,4 @@ static Future showNotification({
       await _notificationDetails(),
       payload : payload, 
     );
-    // ).then((value) {
-    // flutterTts.speak(payload.toString()); 
-    // print("######################################");
-    // } 
-    // );
-
-//scheduled notification now.....................................................................................
-// static void showScheduledNotificationNow({
-// int id = 0 ,
-//  String ? title,
-//  String ? body,
-//  String ? payload,
-//   required DateTime scheduledDate,
-// } ) async =>
-// _notifications.zonedSchedule(
-//   id,
-//   title,
-//   body,
-//   tz.TZDateTime.from(scheduledDate, tz.local),
-//   await _notificationDetails(),
-//   payload : payload,
-//   androidAllowWhileIdle : true,
-//   uiLocalNotificationDateInterpretation :
-//       UILocalNotificationDateInterpretation.absoluteTime,
-// );
-
-
 }                

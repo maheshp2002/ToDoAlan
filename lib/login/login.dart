@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:todoalan/login/constants/constants.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GoogleSignIn extends StatefulWidget {
   GoogleSignIn({Key? key}) : super(key: key);

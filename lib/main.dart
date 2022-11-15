@@ -12,13 +12,8 @@ import 'package:todoalan/homescreen/homescreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
-// FlutterTts flutterTtsGlobal = FlutterTts();
-
-
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  // Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
-
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -27,8 +22,6 @@ Future<void> main() async{
 
   await Firebase.initializeApp();
   
-  //BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
-  //FlutterBackgroundService.initialize(homepageState().onStart);
   runApp(RestartWidget(
   child:  MyApp()));
 }
@@ -39,6 +32,7 @@ Future<void> main() async{
 class MyApp extends StatefulWidget {
   @override
   MyAppState createState() => MyAppState();
+
 /// InheritedWidget style accessor to our State object.
 /// We can call this static method from any descendant context to find our
 /// State object and switch the themeMode field value & call for a rebuild.
@@ -328,184 +322,4 @@ List<Color> colors11 = [Color(0xFFEC00BC), Color(0xFF04123F)];
 List<Color> colors12 = [Color(0xFFECBC), Color(0xFFC9F0E4)];
 List<Color> colors13 = [Color(0xFFA0B5EB), Color(0xFF3957ED)];
 List<Color> colors14 = [Color(0xFF04123F), Color(0xFF04123F)];
-
-
-//Comment code.........................................................................................
-
-//import 'package:background_fetch/background_fetch.dart';
-//import 'dart:io';
-//import 'package:rhino_flutter/rhino.dart';
-// import 'package:fluttertoast/fluttertoast.dart';
-// import 'package:picovoice_flutter/picovoice_error.dart';
-// import 'package:picovoice_flutter/picovoice_manager.dart';
-
-
-  // Register to receive BackgroundFetch events after app is terminated.
-  // Requires {stopOnTerminate: false, enableHeadless: true}
-  // BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
-  
-  // PicovoiceManager? _picovoiceManager;
-  // bool _listeningForCommand = false;
-  // bool _isError = false;
-  // String _errorMessage = "";
-  // final String accessKey = "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
-
-// //pico voice initilize
-//   void _initPicovoice() async {
-//     String platform = Platform.isAndroid
-//         ? "android"
-//         : Platform.isIOS
-//             ? "ios"
-//             : throw PicovoiceRuntimeException(
-//                 "This demo supports iOS and Android only.");
-//     String keywordAsset = "assets/$platform/pico clock_$platform.ppn";
-//     String contextAsset = "assets/$platform/clock_$platform.rhn";
-
-//     try {
-//       _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
-//           _wakeWordCallback, contextAsset, _inferenceCallback,
-//           processErrorCallback: _errorCallback);
-//       await _picovoiceManager?.start();
-//     } on PicovoiceInvalidArgumentException catch (ex) {
-//       _errorCallback(PicovoiceInvalidArgumentException(
-//           "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
-//     } on PicovoiceActivationException {
-//       _errorCallback(
-//           PicovoiceActivationException("AccessKey activation error."));
-//     } on PicovoiceActivationLimitException {
-//       _errorCallback(PicovoiceActivationLimitException(
-//           "AccessKey reached its device limit."));
-//     } on PicovoiceActivationRefusedException {
-//       _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
-//     } on PicovoiceActivationThrottledException {
-//       _errorCallback(PicovoiceActivationThrottledException(
-//           "AccessKey has been throttled."));
-//     } on PicovoiceException catch (ex) {
-//       _errorCallback(ex);
-//     }
-//   }
-
-//   void _wakeWordCallback() {
-//     setState(() {
-//       _listeningForCommand = true;
-//     });
-//   }
-
-// void _inferenceCallback(RhinoInference inference) {  
-//   if (inference.isUnderstood!) {
-//     Map<String, String> slots = inference.slots!;
-//     if (inference.intent == 'navigate') {
-//       _navigate(slots);
-//     }
-//     // } else if (inference.intent == 'timer') {
-//     //   _performTimerCommand(slots);
-//     // } else if (inference.intent == 'setTimer') {
-//     //   _setTimer(slots);
-//     // } else if (inference.intent == 'alarm') {
-//     //   _performAlarmCommand(slots);
-//     // } else if (inference.intent == 'setAlarm') {
-//     //   _setAlarm(slots);
-//     // } else if (inference.intent == 'stopwatch') {
-//     //   _performStopwatchCommand(slots);
-//     // } else if (inference.intent == 'availableCommands') {
-//     //   _showAvailableCommands();
-//     // }
-//   } else {
-//       Fluttertoast.showToast(
-//           msg: "Didn't understand command!\n" +
-//               "Say 'PicoClock, what can I say?' to see a list of example commands",
-//           toastLength: Toast.LENGTH_LONG,
-//           gravity: ToastGravity.TOP,
-//           timeInSecForIosWeb: 2,
-//           backgroundColor: Color.fromRGBO(55, 125, 255, 1),
-//           textColor: Colors.white,
-//           fontSize: 16.0);
-//   }
-//   setState(() {
-//     _listeningForCommand = false;
-//   });
-// }
-
-// _navigate(Map<String, String> slots){
-
-// }
-
-//   void _errorCallback(PicovoiceException error) {
-//     setState(() {
-//       _isError = true;
-//       _errorMessage = error.message!;
-//     });
-//   }
-
-//..........................................................................................................
-
-// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
-// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
-// @pragma('vm:entry-point')
-// void backgroundFetchHeadlessTask(HeadlessTask task) async {
-//   String taskId = task.taskId;
-//   bool isTimeout = task.timeout;
-//   if (isTimeout) {
-//     // This task has exceeded its allowed running-time.  
-//     // You must stop what you're doing and immediately .finish(taskId)
-//     print("[BackgroundFetch] Headless task timed-out: $taskId");
-//     BackgroundFetch.finish(taskId);
-//     return;
-//   }  
-//   print('[BackgroundFetch] Headless event received.');
-//   // Do your work here...
-//   BackgroundFetch.finish(taskId);
-// }
-
-// @pragma('vm:entry-point')
-// void callbackDispatcher() {
-//   Workmanager().executeTask((taskName, inputData) {
-//     try {
-//     // flutterTtsGlobal.speak("ok done");
-//     Timer(Duration(minutes: 1), (){
-//     flutterTtsGlobal.speak("baabu namboothiri aanu. sivaanandhan");
-//     print("#####################################################################################ok done");
-//     }
-//     );
-//     // homepageState().initPlatformState;
-//     // flutterTtsGlobal.speak("sucess");
-//     } catch(err) {
-//       flutterTtsGlobal.speak(err.toString());
-//       Logger().e(err.toString()); // Logger flutter package, prints error on the debug console
-//       throw Exception(err);
-//     }
-//     return Future.value(true);
-//   });
-// }
-
-//background fetch.............................................................................................
-// [Android-only] This "Headless Task" is run when the Android app is terminated with `enableHeadless: true`
-// Be sure to annotate your callback function to avoid issues in release mode on Flutter >= 3.3.0
-// @pragma('vm:entry-point')
-// void backgroundFetchHeadlessTask(HeadlessTask task) async {
-//   FlutterTts flutterTts = FlutterTts();
-//   String taskId = task.taskId;
-//   bool isTimeout = task.timeout;
-//   if (isTimeout) {
-//     // This task has exceeded its allowed running-time.  
-//     // You must stop what you're doing and immediately .finish(taskId)
-//     //flutterTts.speak("[BackgroundFetch] Headless task timed-out: $taskId");
-//     print("[BackgroundFetch] Headless task timed-out: $taskId");
-//     BackgroundFetch.finish(taskId);
-//     return;
-//   }  
-//   homepageState().initPlatformState()
-//   .then((value) => flutterTts.speak('[BackgroundFetch] Headless event received.'));
-
-//   print('[BackgroundFetch] Headless event received.');
-//   BackgroundFetch.finish(taskId);
-// }
-
-// The callback function should always be a top-level function.
-// @pragma('vm:entry-point')
-// void startCallback() {
-//   // The setTaskHandler function must be called to handle the task in the background.
-//   FlutterForegroundTask.setTaskHandler(MyTaskHandler());
-// }
-//..........................................................................................................
 

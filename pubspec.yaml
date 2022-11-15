@@ -47,7 +47,6 @@ dev_dependencies:
   google_sign_in: ^5.4.1
   firebase_storage: ^10.3.8
   firestore_search: ^0.1.9
-  # firebase_messaging: ^13.1.0
 
   #task
   shared_preferences: ^2.0.15
@@ -69,21 +68,13 @@ dev_dependencies:
   url_launcher: ^6.1.6
 
   #Voice assistant
-  # alan_voice: ^3.6.0
   speech_to_text: ^5.5.0
-  picovoice_flutter: ^2.1.6
   permission_handler: ^10.1.0
-  leopard_flutter: ^1.1.0
   path_provider: ^2.0.9
-  flutter_voice_processor: ^1.0.7
   background_stt: ^1.0.6
 
   # floating action button effect
   avatar_glow: ^2.0.2
-
-
-  # copy text to clipboard
-  clipboard: ^0.1.3
 
   #notification
   rxdart: ^0.27.5
@@ -95,10 +86,17 @@ dev_dependencies:
   flutter_foreground_task: ^3.10.0
   flutter_speech: ^2.0.0
 
+  ## commented packages
+
   # logger: ^1.1.0
-  # workmanager: ^0.4.1
-  #flutter_local_notifications: ^9.1.5
   #timezone: ^0.8.0
+  # alan_voice: ^3.6.0
+  # workmanager: ^0.4.1
+  # leopard_flutter: ^1.1.0
+  # picovoice_flutter: ^2.1.6
+  # flutter_voice_processor: ^1.0.7
+  #flutter_local_notifications: ^9.1.5
+  # clipboard: ^0.1.3 # copy text to clipboard
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -116,9 +114,9 @@ flutter:
     - assets/
     - assets/gif/
     - assets/todoAlanTheme/
-    - assets/pico_voice/Evoke_en_android_v2_1_0.rhn
-    - assets/pico_voice/hey-evoke_en_android_v2_1_0.ppn
-    - assets/pico_voice/Evoke--leopard-v1.1.0--22-11-08--07-38-33.pv
+    # - assets/pico_voice/Evoke_en_android_v2_1_0.rhn
+    # - assets/pico_voice/hey-evoke_en_android_v2_1_0.ppn
+    # - assets/pico_voice/Evoke--leopard-v1.1.0--22-11-08--07-38-33.pv
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
