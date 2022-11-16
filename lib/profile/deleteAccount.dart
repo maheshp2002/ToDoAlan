@@ -15,6 +15,7 @@ class deleteAccount extends StatefulWidget {
   final email;
   final name;
   deleteAccount({Key? key,this.email,this.name}) : super(key: key);
+
   @override
   _deleteAccountState createState() => _deleteAccountState();
 }
@@ -192,8 +193,8 @@ class _deleteAccountState extends State<deleteAccount> {
       );
   }
   
-  //delete......................................................................................................
-   delete()  async{ 
+//delete......................................................................................................
+  delete()  async{ 
      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -298,21 +299,21 @@ class _deleteAccountState extends State<deleteAccount> {
    );
    }
 
-_sendingMails()  {
-String encodeQueryParameters(Map<String, String> params) {
-  return params.entries
-      .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-      .join('&');
-}
-final Uri emailLaunchUri = Uri(
-  scheme: 'mailto',
-  path: 'abivandiyil001@gmail.com',
-  query: encodeQueryParameters(<String, String>{
-    'subject': 'Delete account',
-    'body' : 'Email-id: ${user!.email!} \nUsername: ${widget.name}' 
-  }),
-);
+  _sendingMails()  {
+    String encodeQueryParameters(Map<String, String> params) {
+      return params.entries
+          .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+    }
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'abivandiyil001@gmail.com',
+      query: encodeQueryParameters(<String, String>{
+        'subject': 'Delete account',
+        'body' : 'Email-id: ${user!.email!} \nUsername: ${widget.name}' 
+      }),
+    );
 
-launchUrl(emailLaunchUri);
-}
+    launchUrl(emailLaunchUri);
+  }
 }
