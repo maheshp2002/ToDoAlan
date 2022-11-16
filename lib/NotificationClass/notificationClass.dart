@@ -22,15 +22,15 @@ static void showScheduledNotification({
  int? hh,
  int? mm,
  int? ss,
- List<int>? date,
-required DateTime scheduledDate,
+ List<int>? days,
+ required DateTime date,
 }) async =>
 _notifications.zonedSchedule(
   id,
   title,
   body,
  //_scheduleDaily(Time(hh!, mm!, ss!)), 
-  _scheduleWeekly(hh!, mm!, ss!, days: date!),
+  _scheduleWeekly(hh!, mm!, ss!, date, days: days!),
   await _notificationDetails(),
   payload : payload,
   androidAllowWhileIdle : true,
@@ -40,8 +40,8 @@ _notifications.zonedSchedule(
 );
 
 //schedule notification weekly...................................................................................
-static tz.TZDateTime _scheduleWeekly(int hh, mm, ss, {required List<int> days}) {
-    tz.TZDateTime scheduleDate= _scheduleDaily(hh, mm, ss);
+static tz.TZDateTime _scheduleWeekly(int hh, mm, ss, DateTime date, {required List<int> days}) {
+    tz.TZDateTime scheduleDate= _scheduleDaily(hh, mm, ss, date);
 
     while (!days.contains(scheduleDate.weekday)){
       scheduleDate = scheduleDate.add(Duration(days: 1));
@@ -50,8 +50,8 @@ static tz.TZDateTime _scheduleWeekly(int hh, mm, ss, {required List<int> days}) 
 }
 
 //show notification daily.........................................................................................
-static tz.TZDateTime _scheduleDaily(int hh, mm, ss) {
-  final now = tz.TZDateTime.now (tz.local);
+static tz.TZDateTime _scheduleDaily(int hh, mm, ss, DateTime date) {
+  final now = tz.TZDateTime.from(date, tz.local);
   final scheduledDate = tz.TZDateTime (
     tz.local,
     now.year,

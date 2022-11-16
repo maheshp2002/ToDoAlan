@@ -6,10 +6,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todoalan/Animation/fadeAnimation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todoalan/NotificationClass/notificationClass.dart';
+import 'package:flutter_rounded_date_picker/flutter_rounded_date_picker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 enum SelectedColor { Work, Education, Personal, Sports, /* Family,*/ Medical, Others }
+
+const List<String> list = <String>['Today', 'Select date'];
 
 class addTask extends StatefulWidget {
 
@@ -54,16 +57,22 @@ class addTaskState extends State<addTask> {
   bool Saturday = true;
 
   String text = '';
+  String image = 'assets/city.jpg';
+  String quote = '“Thy fate is the common fate of all; Into each life some rain must fall.” - Henry Wadsworth Longfellow';
   bool isListening = false;
+  // bool isSelectDate = false;
+  DateTime scheduleDate = DateTime.now();
   bool isPickerSelected = false;
   String selectedCategory = "Work";
+  String dropdownValue = list.first;
+  List<int> date = [1, 2, 3, 4, 5, 6, 7];
   static DateTime _eventdDate = DateTime.now();
   User? user = FirebaseAuth.instance.currentUser;
-  static var now =  TimeOfDay.fromDateTime(DateTime.parse(_eventdDate.toString()));
   String hours = now.toString().substring(10, 15);
   String minutes = now.toString().substring(10, 15);
   String _eventTime = now.toString().substring(10, 15);
-  List<int> date = [1, 2, 3, 4, 5, 6, 7];
+  String hintText = DateTime.now().toString().substring(0, 10);
+  static var now =  TimeOfDay.fromDateTime(DateTime.parse(_eventdDate.toString()));
   List<String> days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
@@ -79,6 +88,7 @@ void initState() {
     descriptionController.text = todo.description;
 
     if(isEdit) {
+      scheduleDate = DateTime.parse(todo.date1);
       _eventTime = timeController.text = todo.time;
       hours = todo.time.toString().substring(0, 2);
       minutes = todo.time.toString().substring(3, 5);   
@@ -229,7 +239,7 @@ if (timepick != null) {
                   child:  Container(
                   width: we * 8,
                   //height: he * 0.12,
-                  margin: EdgeInsets.only(top: 5, left: we * 0.1, bottom: he * 0.12),
+                  margin: EdgeInsets.only(top: 5, left: we * 0.1),
                   child: TextFormField( 
                     controller: timeController, 
                     enabled: false,
@@ -245,6 +255,57 @@ if (timepick != null) {
                   )
                 )
               ),), 
+
+              FadeAnimation(
+              delay: 0.4,
+              child: Padding(padding: EdgeInsets.only(left: we * 0.1, bottom: he * 0.12),
+              child: Align(alignment: Alignment.topLeft,
+              child: DropdownButton<String>(
+                // value: dropdownValue,
+                hint: Text(hintText, style: TextStyle(fontFamily: "BrandonL",
+                  color: Theme.of(context).scaffoldBackgroundColor)),
+                icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).scaffoldBackgroundColor),
+                elevation: 16,
+                style: TextStyle(fontFamily: "BrandonL",
+                  color: Theme.of(context).hintColor),
+                // underline: Container(
+                //   height: 2,
+                //   color: Colors.deepPurpleAccent,
+                // ),
+                dropdownColor: Color.fromARGB(204, 244, 246, 253),
+                onChanged: (String? value) {
+                  // This is called when the user selects an item.
+                  setState(() {
+                    dropdownValue = value!;
+                  });
+                  if (value == 'Select date') {
+                    if (image == 'assets/rainy.jpg') {
+                      setState(() {
+                        image = 'assets/city.jpg';
+                        quote = '“Aim for the moon. If you miss, you may hit a star.”\n\n - William Clement Stone';
+                      });
+                    } else {
+                      setState(() {
+                        image = 'assets/rainy.jpg';
+                        quote = '“Thy fate is the common fate of all; Into each life some rain must fall.”\n\n - Henry Wadsworth Longfellow';
+                      });
+                    }
+                    datePicker();
+                  } else {
+                    setState(() {
+                      hintText = DateTime.now().toString().substring(0, 10);
+                      scheduleDate = DateTime.now();
+                    });
+                  }
+                },
+                items: list.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(fontFamily: "BrandonL",
+                    color: Theme.of(context).scaffoldBackgroundColor)),
+                  );
+                }).toList(),
+            )))),
 
              FadeAnimation(delay: 0.5, child: _buidTage()),//category
              
@@ -318,6 +379,8 @@ if (timepick != null) {
                   todo.category = selectedCategory;
                   todo.time = timeController.text =  _eventTime;
                   todo.time = timeController.text;
+                  todo.date1 = scheduleDate.toString();
+                  todo.date2 = scheduleDate.toString().substring(0, 10);
                 });
                 
                 //if is editing remove previous scheduled notification first
@@ -336,6 +399,8 @@ if (timepick != null) {
                         'description': todo.description,
                         'time': _eventTime,
                         'category': selectedCategory,
+                        'scheduleDate': scheduleDate.toString().substring(0, 10),
+                        'date1': scheduleDate.toString(),
                         'date': date.toString().replaceAll('[', '').replaceAll(']', ''),
                         'days': days.toString().replaceAll('[', '').replaceAll(']', ''),
                         'id': todo.id,
@@ -357,6 +422,8 @@ if (timepick != null) {
                       'description': todo.description,
                       'time': _eventTime,
                       'category': selectedCategory,
+                      'scheduleDate': scheduleDate.toString().substring(0, 10),
+                      'date1': scheduleDate.toString(),
                       'date': date.toString(),
                       'days': days.toString().replaceAll('[', '').replaceAll(']', ''),
                       'id': todo.id,
@@ -384,16 +451,16 @@ if (timepick != null) {
                   hh:  int.parse(hours),
                   mm: int.parse(minutes),
                   ss: int.parse("00"),
-                  date: date,
-                  scheduledDate: DateTime.now().add(Duration(seconds: 10))
+                  days: date,
+                  date: scheduleDate
                 );
               
-                      Fluttertoast.showToast(  
-                      msg: 'Task added..!',  
-                      toastLength: Toast.LENGTH_LONG,  
-                      gravity: ToastGravity.BOTTOM,  
-                      backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-                      textColor: Colors.white);                               
+                Fluttertoast.showToast(  
+                msg: 'Task added..!',  
+                toastLength: Toast.LENGTH_LONG,  
+                gravity: ToastGravity.BOTTOM,  
+                backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+                textColor: Colors.white);                               
 
                 Navigator.pop(context, todo);
 
@@ -612,8 +679,59 @@ if (timepick != null) {
   }
 
 //date.......................................................................................................
-  taskDays() {
+datePicker() async{
+  String lastDateString = "2322-12-31 00:00:00.000";
+  DateTime lastDate = DateTime.parse(lastDateString);
 
+  String firstDateString = "1947-08-15 00:00:00.000";
+  DateTime firstDate = DateTime.parse(firstDateString);
+
+  DateTime newDateTime = await showRoundedDatePicker(
+  initialDatePickerMode: DatePickerMode.year,
+  lastDate: lastDate,
+  firstDate: firstDate,
+  context: context,
+  theme: ThemeData(colorScheme: ColorScheme.fromSwatch().copyWith(primary: Color.fromARGB(255, 255, 178, 89))),
+  styleDatePicker: MaterialRoundedDatePickerStyle(
+  backgroundPicker:  Theme.of(context).scaffoldBackgroundColor,
+
+  textStyleDayButton: TextStyle(color: Theme.of(context).hintColor, fontFamily: "MaliR",),
+  textStyleYearButton: TextStyle(color: Theme.of(context).hintColor,fontFamily: "MaliR",),
+  textStyleDayHeader: TextStyle(color: Theme.of(context).hintColor,fontFamily: "MaliR",),
+  textStyleCurrentDayOnCalendar:
+  TextStyle(color: Theme.of(context).hintColor, fontWeight: FontWeight.bold, fontFamily: "MaliR",),
+  textStyleDayOnCalendar: TextStyle(color: Theme.of(context).hintColor, fontFamily: "MaliR",),
+  textStyleDayOnCalendarSelected:
+  TextStyle(color: Theme.of(context).hintColor, fontWeight: FontWeight.bold, fontFamily: "MaliR",),
+  textStyleDayOnCalendarDisabled: TextStyle(color: Theme.of(context).hintColor.withOpacity(0.1)),
+  textStyleMonthYearHeader:
+  TextStyle(color: Theme.of(context).hintColor, fontWeight: FontWeight.bold, fontFamily: "MaliR",),
+  
+  paddingDatePicker: EdgeInsets.only(left: 10, right: 10),
+  paddingMonthHeader: EdgeInsets.all(32),
+  paddingActionBar: EdgeInsets.all(16),
+  paddingDateYearHeader: EdgeInsets.all(32),
+
+  colorArrowNext: Theme.of(context).hintColor,
+  colorArrowPrevious: Theme.of(context).hintColor,
+
+  ),
+  imageHeader: AssetImage(
+    image,
+  ),
+  fontFamily: "MaliR",
+  description: quote,
+  ) ?? DateTime.now();
+   setState(() {
+    scheduleDate = newDateTime;
+    todo.date1 = newDateTime.toString();
+    todo.date2 = newDateTime.toString().substring(0, 10);
+    hintText = newDateTime.toString().substring(0, 10);
+  });
+}
+
+//days.......................................................................................................
+  taskDays() {
     return showDialog(
         context: context,
         builder: (ctx) => StatefulBuilder(

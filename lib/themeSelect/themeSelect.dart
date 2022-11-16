@@ -21,20 +21,20 @@ class _themeSelectState extends State<themeSelect> {
   bool isListening = false;
 
   List<Themes> themeColors = [
-    Themes(url: 'assets/todoAlanTheme/colors1.png', id: 1),
-    Themes(url: 'assets/todoAlanTheme/colors2.png', id: 2),
-    Themes(url: 'assets/todoAlanTheme/colors3.png', id: 3),
-    Themes(url: 'assets/todoAlanTheme/colors4.png', id: 4),
-    Themes(url: 'assets/todoAlanTheme/colors5.png', id: 5),
-    Themes(url: 'assets/todoAlanTheme/colors6.png', id: 6),
-    Themes(url: 'assets/todoAlanTheme/colors7.png', id: 7),
-    Themes(url: 'assets/todoAlanTheme/colors8.png', id: 8),
-    Themes(url: 'assets/todoAlanTheme/colors9.png', id: 9),
-    Themes(url: 'assets/todoAlanTheme/colors10.png', id: 10),
-    Themes(url: 'assets/todoAlanTheme/colors11.png', id: 11),
-    Themes(url: 'assets/todoAlanTheme/colors12.png', id: 12),
-    Themes(url: 'assets/todoAlanTheme/colors13.png', id: 13),
-    Themes(url: 'assets/todoAlanTheme/colors14.png', id: 14),
+    Themes(url: 'assets/Evoke/colors1.png', id: 1),
+    Themes(url: 'assets/Evoke/colors2.png', id: 2),
+    Themes(url: 'assets/Evoke/colors3.png', id: 3),
+    Themes(url: 'assets/Evoke/colors4.png', id: 4),
+    Themes(url: 'assets/Evoke/colors5.png', id: 5),
+    Themes(url: 'assets/Evoke/colors6.png', id: 6),
+    Themes(url: 'assets/Evoke/colors7.png', id: 7),
+    Themes(url: 'assets/Evoke/colors8.png', id: 8),
+    Themes(url: 'assets/Evoke/colors9.png', id: 9),
+    Themes(url: 'assets/Evoke/colors10.png', id: 10),
+    Themes(url: 'assets/Evoke/colors11.png', id: 11),
+    Themes(url: 'assets/Evoke/colors12.png', id: 12),
+    Themes(url: 'assets/Evoke/colors13.png', id: 13),
+    Themes(url: 'assets/Evoke/colors14.png', id: 14),
   ];
 
   @override

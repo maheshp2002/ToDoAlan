@@ -69,7 +69,7 @@ class _deleteAccountState extends State<deleteAccount> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).hintColor,
-                fontFamily: 'BrandonBI',
+                fontFamily: 'MaliB',
                 fontSize: 20,
               ),
             ),
@@ -81,7 +81,7 @@ class _deleteAccountState extends State<deleteAccount> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).hintColor,
-                fontFamily: 'BrandonLI',
+                fontFamily: 'MaliR',
                 fontSize: 15,
               ),
             )),
@@ -92,7 +92,7 @@ class _deleteAccountState extends State<deleteAccount> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).hintColor,
-                fontFamily: 'BrandonLI',
+                fontFamily: 'MaliR',
                 fontSize: 15,
               ),
             )),
@@ -103,7 +103,7 @@ class _deleteAccountState extends State<deleteAccount> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Theme.of(context).hintColor,
-                fontFamily: 'BrandonLI',
+                fontFamily: 'MaliR',
                 fontSize: 15,
               ),
             )),
@@ -219,63 +219,56 @@ class _deleteAccountState extends State<deleteAccount> {
              ),               
             child:  Text('Yes',style: TextStyle(fontFamily: 'BrandonLI', color: Theme.of(context).hintColor)),  
             onPressed: () async { 
-            try{
 
+            Navigator.of(context).pop();  
+
+            try{
             setState(() {
               isDelete = true;
-            });
-            
+            });           
 
             try{
-
-             await FirebaseFirestore.instance.collection("Users").doc(user!.email!).delete();
-
-            } catch(e){
-
-              debugPrint(e.toString());
-
-            }  
-
-            try{
-
               await FirebaseStorage.instance.ref(user!.email! + "/"  + "profile/")
                   .listAll().then((value) {
               FirebaseStorage.instance.ref(value.items.first.fullPath).delete();
               });
-
               
-              }  catch(e){
-
+            }  catch(e){
               debugPrint(e.toString()); 
-
             } 
             
+            try{
+             await FirebaseFirestore.instance.collection("Users").doc(user!.email!).delete();
+
+            } catch(e){
+              debugPrint(e.toString());
+            }  
+
             SharedPreferences prefs = await SharedPreferences.getInstance();
             
+            await prefs.setBool('validation', false); 
+            await prefs.setBool('isDark', false);   
+            await prefs.remove(widget.email);
+            await prefs.setInt('NavBartheme', 1);
+         
             try{
               await user?.delete();
             } catch(e){
-            
-              debugPrint(e.toString());
-            }
-            try{
-            FirebaseService service = new FirebaseService();
-            await service.signOutFromGoogle();
-            } catch(e){
-            
               debugPrint(e.toString());
             }
 
-            await prefs.setBool('validation', false); 
-            await  prefs.setBool('isDark', false);   
-            await prefs.remove(widget.email);
-            await prefs.setInt('NavBartheme', 1);
+            try{
+              FirebaseService service = new FirebaseService();
+              await service.signOutFromGoogle();
+            } catch(e){
+              debugPrint(e.toString());
+            }
+
            
             NavBartheme = 1;
 
             RestartWidget.restartApp(context);
 
-            Navigator.of(context).pop();  
             Fluttertoast.showToast(  
             msg: 'Account deleted..!',  
             toastLength: Toast.LENGTH_LONG,  
@@ -287,17 +280,17 @@ class _deleteAccountState extends State<deleteAccount> {
            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MyApp()));
             
           } catch(e){
+            debugPrint(e.toString());
 
-              debugPrint(e.toString());
-              Navigator.of(context).pop();  
-              Fluttertoast.showToast(  
-              msg: 'Unable to delete your account..!',  
-              toastLength: Toast.LENGTH_LONG,  
-              gravity: ToastGravity.BOTTOM,  
-              backgroundColor: Color.fromARGB(255, 253, 17, 0),  
-              textColor: Colors.white  
-              );  
+            Navigator.of(context).pop();  
 
+            Fluttertoast.showToast(  
+            msg: 'Unable to delete your account..!',  
+            toastLength: Toast.LENGTH_LONG,  
+            gravity: ToastGravity.BOTTOM,  
+            backgroundColor: Color.fromARGB(255, 253, 17, 0),  
+            textColor: Colors.white  
+            );  
           }  
             }
           )

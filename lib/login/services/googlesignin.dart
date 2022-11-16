@@ -193,7 +193,7 @@ updateTaskLength() async{
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', date1: '', date2: '', category: '').fromJson(todo));
       });
     }
   }
@@ -733,9 +733,9 @@ Future<File> fileFromImageUrl() async {
   createTask(int height, int weight, int age) async{
 
     //local variables
-    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
-    Todo t1 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
-    Todo t2 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
+    Todo t1 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
+    Todo t2 = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
     double _result;
 
 //calculate BMI..................................................................................
@@ -761,6 +761,8 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 5am";
         t.time = "21:30";
+        t.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
         t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
@@ -774,8 +776,8 @@ Future<File> fileFromImageUrl() async {
       hh:  21,
       mm: 30,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -794,6 +796,8 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 6am";
         t.time = "21:00";
+        t.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
         t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
@@ -807,8 +811,8 @@ Future<File> fileFromImageUrl() async {
       hh:  21,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -826,6 +830,8 @@ Future<File> fileFromImageUrl() async {
         t.title = "Sleep";
         t.description = "Wake up during 7am";
         t.time = "20:00";
+        t.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
         t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t.category = "Personal";
       });
@@ -839,8 +845,8 @@ Future<File> fileFromImageUrl() async {
       hh:  20,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -867,6 +873,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -878,8 +886,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -896,6 +904,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -907,8 +917,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -931,6 +941,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -942,8 +954,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -961,6 +973,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -972,8 +986,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -996,6 +1010,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1007,8 +1023,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1024,6 +1040,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1035,8 +1053,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1065,6 +1083,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:30";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1076,8 +1096,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 30,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1094,6 +1114,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1105,8 +1127,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1124,6 +1146,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:30";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1135,8 +1159,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 30,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1152,6 +1176,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1163,8 +1189,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1182,6 +1208,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "06:30";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1193,8 +1221,8 @@ Future<File> fileFromImageUrl() async {
       hh:  06,
       mm: 30,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1211,6 +1239,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1222,8 +1252,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1250,6 +1280,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "07:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1261,8 +1293,8 @@ Future<File> fileFromImageUrl() async {
       hh:  07,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1278,6 +1310,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1289,8 +1323,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1308,6 +1342,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "07:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1319,8 +1355,8 @@ Future<File> fileFromImageUrl() async {
       hh:  07,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1336,6 +1372,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1347,8 +1385,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1366,6 +1404,8 @@ Future<File> fileFromImageUrl() async {
         t1.time = "07:00";
         t1.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t1.category = "Sports";
+        t1.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1377,8 +1417,8 @@ Future<File> fileFromImageUrl() async {
       hh:  07,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {
@@ -1394,6 +1434,8 @@ Future<File> fileFromImageUrl() async {
         t2.time = "17:00";
         t2.days = date.toString().replaceAll('[', '').replaceAll(']', '');
         t2.category = "Sports";
+        t2.date1 = DateTime.now().toString();
+        t1.date2 = DateTime.now().toString().substring(0, 10);
       });
       //setting scheduled notification
                               
@@ -1405,8 +1447,8 @@ Future<File> fileFromImageUrl() async {
       hh:  17,
       mm: 00,
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.now().add(Duration(seconds: 10))
       );
 
       setState(() {

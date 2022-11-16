@@ -90,7 +90,8 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
    = FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 
-startService(String? command,) async{
+// Voice AI........................................................................................................
+    startService(String? command,) async{
       if(command == "open backup" || command == "openbackup") {
         _service.speak("Opening backup", false);
         Navigator.push(
@@ -120,7 +121,7 @@ startService(String? command,) async{
           listeningText = "Hold on...";
         });
         _service.speak("Please press the record button to set title.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
+        Future.delayed(Duration(milliseconds: 100), () => _service.pauseListening());
         setState(() {
           isEnable = true;
           isTitle = 'title';
@@ -131,8 +132,8 @@ startService(String? command,) async{
         setState(() {
           listeningText = "Hold on...";
         });
-        _service.speak("Please press the record button to set description.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
+        flutterTts.speak("Please press the record button to set description.");
+        Future.delayed(Duration(milliseconds: 100), () => _service.pauseListening());
         setState(() {
           isEnable = true;
           isTitle = 'description';
@@ -144,7 +145,7 @@ startService(String? command,) async{
           listeningText = "Hold on...";
         });
         _service.speak("Please press the record button to set time.", false);
-        Future.delayed(Duration(seconds: 1), () => _service.pauseListening());
+        Future.delayed(Duration(milliseconds: 100), () => _service.pauseListening());
         setState(() {
           isEnable = true;
           isTitle = 'time';
@@ -253,13 +254,13 @@ startService(String? command,) async{
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', date1: '', date2: '', category: '').fromJson(todo));
       });
     }
   }
 
 //speech recognition..................................................................................................
-  // Platform messages are asynchronous, so we initialize in an async method.
+// Platform messages are asynchronous, so we initialize in an async method.
   void activateSpeechRecognizer() {
     print('_MyAppState.activateSpeechRecognizer... ');
     _speech = SpeechRecognition();
@@ -284,7 +285,7 @@ startService(String? command,) async{
       });
 
 
-//time conversions.......................................................
+//time conversions...............................................................................................
   voiceTime(String time) {
     int hour = 0;
     int minute = 0;
@@ -459,29 +460,17 @@ startService(String? command,) async{
        sortno = todos.length;
       });
     });
+    
+    _service.startSpeechListenService; //start sst
 
-    // _initPicovoice();
-    _service.startSpeechListenService;
-
-
+    // init sst
     _service.getSpeechResults().onData((data) {
       print("getSpeechResults: ${data.result} , ${data.isPartial} [STT Mode]");
-      // _service.speak("Hey", false);
 
       startService(data.result);
     });
     
     activateSpeechRecognizer();
-
-    // setState(() {
-    //   recordedLength = 0.0;
-    //   statusAreaText =
-    //       "Press START to start recording some audio to transcribe";
-    //   transcriptText = "";
-    //   words = [];
-    // });
-
-    // initLeopard();
 
     super.initState();
   }
@@ -492,16 +481,6 @@ startService(String? command,) async{
   WidgetsBinding.instance!.removeObserver(this);
   super.dispose();
   }
-
-//lsiten to notification..........................................................................................
-// void listenNotifications() =>
-//             NotificationApi.onNotifications.stream.listen(onClickedNotification);
-
-//   void onClickedNotification(String? payload) async{
-//     isNotificationSound == true 
-//     ? await flutterTts.speak(payload.toString()) 
-//     : debugPrint("################################disabled");
-//   } 
 
 //foreground service...............................................................................................
   void _initForegroundTask() {
@@ -519,10 +498,6 @@ startService(String? command,) async{
           name: 'launcher',
           backgroundColor: Color.fromARGB(255, 255, 178, 89),
         ),
-        // buttons: [
-        //   const NotificationButton(id: 'sendButton', text: 'Send'),
-        //   const NotificationButton(id: 'testButton', text: 'Test'),
-        // ],
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: true,
@@ -581,7 +556,7 @@ addVoiceTask() async{
       globalCategory: FieldValue.increment(1),
     });
     
-    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+    Todo t = Todo(id: 0, title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
 
     List<int> date = [1, 2, 3, 4, 5, 6, 7];
     List<String> days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -595,6 +570,8 @@ addVoiceTask() async{
       t.description = descriptionController.text;
       t.time = timeController.text;
       t.category = globalCategory;
+      t.date1 = DateTime.now().toString();
+      t.date2 = DateTime.now().toString().substring(0, 10);
       t.days = date.toString().replaceAll('[', '').replaceAll(']', '');
     });
 
@@ -607,8 +584,8 @@ addVoiceTask() async{
       hh:  int.parse(hourstext),
       mm: int.parse(minutestext),
       ss: int.parse("00"),
-      date: date,
-      scheduledDate: DateTime.now().add(Duration(seconds: 10))
+      days: date,
+      date: DateTime.parse(t.date1)
     );
 
 
@@ -652,7 +629,6 @@ addVoiceTask() async{
 
 
 //foreground task.................................................................................................
-
   Future<bool> _startForegroundTask() async {
     // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
     // onNotificationPressed function to be called.
@@ -803,11 +779,9 @@ addVoiceTask() async{
       
       backgroundColor:  Theme.of(context).scaffoldBackgroundColor,
 
-      
       body: WithForegroundTask(
       child:
       ListView(children: [
-
                     isEnable == true ?
                     Padding(padding: EdgeInsets.only(left: 5),
                     child: Text(listeningText,
@@ -936,7 +910,7 @@ addVoiceTask() async{
               } catch(e) {
                 debugPrint("error");
               }
-              if (isZero > 0) {
+              if (isZero >= 0) {
                try{
                 //no of task
                 await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
@@ -1194,7 +1168,7 @@ addVoiceTask() async{
 //get value from addTask...................................................................................
   addTodo() async {
     int id = Random().nextInt(2147483637);
-    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+    Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
     Todo returnTodo = await Navigator.push(
         context, MaterialPageRoute(builder: (context) => addTask(todo: t, isEdit: false,)));
     if (returnTodo != null) {
@@ -1253,7 +1227,7 @@ makeListTile(Todo todo, index) {
                     }
 
                     if (!todo.isCompleted) {
-                     if (isZero > 0) {
+                     if (isZero >= 0) {
                      try{
                         //no of task
                         await FirebaseFirestore.instance.collection("Users").doc(user!.email!)
@@ -1284,6 +1258,7 @@ makeListTile(Todo todo, index) {
                       }
                     } else {
                     int isZero = 0;
+
                     try{
                       await collectionReference.collection("Users").doc(user!.email!)
                       .collection("taskLength").doc('task').get()
@@ -1329,8 +1304,8 @@ makeListTile(Todo todo, index) {
                           hh:  int.parse(hours),
                           mm: int.parse(minutes),
                           ss: int.parse("00"),
-                          date: date,
-                          scheduledDate: DateTime.now().add(Duration(seconds: 10))
+                          days: date,
+                          date: DateTime.parse(todo.date1)
                         );
 
                         }
@@ -1382,7 +1357,8 @@ makeListTile(Todo todo, index) {
         builder: (ctx) => AlertDialog(
               title: Text(todo.title,textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
-              content: Text("Description: " + todo.description + "\n" + "Reminder time: " + todo.time + "\nCategory: " + todo.category + "\nDays: " + todo.days, textAlign: TextAlign.left,
+              content: Text("Description: " + todo.description + "\nReminder time: " + todo.time
+              + "\nCategory: " + todo.category + "\nDays: " + todo.days + "\nDate: " + todo.date2, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 
@@ -1397,31 +1373,6 @@ makeListTile(Todo todo, index) {
             ));
             
   }
- 
-  //  Future toggleRecording() => SpeechApi().toggleRecording(
-  //       onResult: (text) => setState(() {
-  //         setState(() {
-  //           isListening = true;
-  //         });
-  //         this.text = text;
-  //         Future.delayed(Duration(milliseconds: 1), () {
-  //           Utils().scanText(text, context);
-  //         });
-  //         Future.delayed(Duration(milliseconds: 10), () {
-  //         setState(() {
-  //           isListening = false;
-  //         });
-  //         });
-  //       }),
-  //       onListening: (isListening) {
-  //         setState(() => this.isListening = isListening);
-  //         // if (!isListening) {
-  //         //   Future.delayed(Duration(seconds: 5), () {
-  //         //     Utils().scanText(text, context);
-  //         //   });
-  //         // }
-  //       },
-  //     );
  
 //delete item.......................................................................................................
   delete(Todo todo) {

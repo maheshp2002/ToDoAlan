@@ -59,7 +59,7 @@ class _backupTaskState extends State<backupTask> {
 
     for (var todo in todoList) {
       setState(() {
-        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', category: '').fromJson(todo));
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', date1: '', date2: '', category: '').fromJson(todo));
       });
     }
   }
@@ -313,7 +313,7 @@ class _backupTaskState extends State<backupTask> {
                     snapshot.data.docs[index]['category']: FieldValue.increment(1),
                   });
                 
-                Todo t = Todo(id: int.parse(snapshot.data.docs[index].id), title: '', description: '', isCompleted: false, time: '', days: '', category: '');
+                Todo t = Todo(id: int.parse(snapshot.data.docs[index].id), title: '', description: '', isCompleted: false, time: '', days: '', date1: '', date2: '', category: '');
 
                 setState(() {
                   t.id = int.parse(snapshot.data.docs[index].id);
@@ -322,6 +322,8 @@ class _backupTaskState extends State<backupTask> {
                   t.time = snapshot.data.docs[index]['time'];
                   t.days = snapshot.data.docs[index]['days'];
                   t.category = snapshot.data.docs[index]['category'];
+                  t.date2 =  snapshot.data.docs[index]['scheduleDate'];
+                  t.date1 =  snapshot.data.docs[index]['date1'];
                 });
 
                 //List<int> date = snapshot.data.docs[index]['date'];
@@ -340,8 +342,8 @@ class _backupTaskState extends State<backupTask> {
                   hh:  int.parse(hours),
                   mm: int.parse(minutes),
                   ss: int.parse("00"),
-                  date: date,
-                  scheduledDate: DateTime.now().add(Duration(seconds: 10))
+                  days: date,
+                  date: DateTime.parse(t.date1)
                   );
 
                   setState(() {
@@ -380,7 +382,7 @@ class _backupTaskState extends State<backupTask> {
               ],
             ),
             child: makeListTile(snapshot.data.docs[index].id, snapshot.data.docs[index]['category'], snapshot.data.docs[index]['title'],
-            snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['days'], snapshot.data.docs[index]['isSelected'],),
+            snapshot.data.docs[index]['description'], snapshot.data.docs[index]['time'], snapshot.data.docs[index]['days'], snapshot.data.docs[index]['scheduleDate'], snapshot.data.docs[index]['isSelected'],),
              ));
            })
             ]);           
@@ -391,7 +393,7 @@ class _backupTaskState extends State<backupTask> {
 
 //make listview of task items................................................................................
 
-makeListTile(String id, category, title, description, time, days, isSelected) {
+makeListTile(String id, category, title, description, time, days, date, isSelected) {
     Color color = Colors.red;
     if (category == "Work") {
       color = const Color(0xFFAC05FF);
@@ -410,7 +412,7 @@ makeListTile(String id, category, title, description, time, days, isSelected) {
     var he = MediaQuery.of(context).size.height;
 
     return GestureDetector(
-    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category, days) : debugPrint("error detail task"),
+    onTap: () => !isSelectedLocal ? detailTask(time, title, description, category, days, date) : debugPrint("error detail task"),
     child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -580,14 +582,14 @@ Cleartask() async{
 }
 
 //detailed view.......................................................................................................
-  detailTask(String title, description, time, category, days) {
+  detailTask(String title, description, time, category, days, date) {
     return showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
               title: Text(title,textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI', fontSize: 30)),
-              content: Text("Description: " + description + "\n" + "Reminder time: " + time
-              + "\nCategory: " + category  + "\Days: " + days, textAlign: TextAlign.left,
+              content: Text("Description: " + description + "\nReminder time: " + time
+              + "\nCategory: " + category  + "\nDays: " + days  + "\nDate: " + date, textAlign: TextAlign.left,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),
               actions: [                
               Center(child: 
