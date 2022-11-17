@@ -278,19 +278,23 @@ if (timepick != null) {
                   setState(() {
                     dropdownValue = value!;
                   });
+
                   if (value == 'Select date') {
                     if (image == 'assets/rainy.jpg') {
                       setState(() {
                         image = 'assets/city.jpg';
                         quote = '“Aim for the moon. If you miss, you may hit a star.”\n\n - William Clement Stone';
                       });
+
                     } else {
                       setState(() {
                         image = 'assets/rainy.jpg';
                         quote = '“Thy fate is the common fate of all; Into each life some rain must fall.”\n\n - Henry Wadsworth Longfellow';
                       });
                     }
+
                     datePicker();
+
                   } else {
                     setState(() {
                       hintText = DateTime.now().toString().substring(0, 10);
@@ -714,6 +718,8 @@ datePicker() async{
 
   colorArrowNext: Theme.of(context).hintColor,
   colorArrowPrevious: Theme.of(context).hintColor,
+  backgroundHeader: Theme.of(context).scaffoldBackgroundColor,
+  backgroundHeaderMonth: Theme.of(context).scaffoldBackgroundColor,
 
   ),
   imageHeader: AssetImage(

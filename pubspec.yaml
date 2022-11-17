@@ -67,6 +67,7 @@ dev_dependencies:
   flutter_switch: ^0.3.2
   font_awesome_flutter: ^10.2.1
   flutter_rounded_date_picker: ^2.0.2
+  
 
   # Voice assistant
   path_provider: ^2.0.9

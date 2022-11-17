@@ -59,9 +59,7 @@ class _themeSelectState extends State<themeSelect> {
       ),
       resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: 
-      
-      GridView.builder(
+      body: GridView.builder(
       physics: BouncingScrollPhysics(),
       padding: EdgeInsets.all(10),
       scrollDirection: Axis.vertical,

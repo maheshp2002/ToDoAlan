@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
+import 'package:todoalan/AI/commands.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
 import 'package:todoalan/addTask/ToDo.dart';
@@ -92,6 +93,8 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
 
 // Voice AI........................................................................................................
     startService(String? command,) async{
+
+      //Navigation commands..............................................................................
       if(command == "open backup" || command == "openbackup") {
         _service.speak("Opening backup", false);
         Navigator.push(
@@ -116,7 +119,55 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
         _service.speak("going back", false);
         Navigator.of(context).pop();
 
-      } else if(command == "set title" || command == "title") {
+      //Other commands..............................................................................
+      } else if(command == "tell me the commands" || command == "commands" 
+      || command == "tell me the command" || command == "command") {
+        _service.speak("Opening command page.", false);
+        Navigator.push(
+        context, MaterialPageRoute(builder: (context) => commands()));
+
+      } else if(command == "enable notification sound") {
+        _service.speak("Notification sound enabled.", false);
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();   
+
+        await prefs.setBool('isNotificationSound', true);
+
+        setState(() {
+          isNotificationSound = true;
+        });  
+
+       Fluttertoast.showToast(  
+       msg: 'Notification sound enabled..!',
+       toastLength: Toast.LENGTH_LONG,  
+       gravity: ToastGravity.BOTTOM,  
+       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+       textColor: Colors.white);   
+
+      } else if(command == "disable notification sound") {
+        _service.speak("Notification sound disabled.", false);
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();   
+
+       await prefs.setBool('isNotificationSound', false);
+
+       setState(() {
+          isNotificationSound = false;
+       });
+       homepageState().closeReceivePort();
+       stopListening();
+
+       Fluttertoast.showToast(  
+       msg: 'Notification sound disabled..!',
+       toastLength: Toast.LENGTH_LONG,  
+       gravity: ToastGravity.BOTTOM,  
+       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+       textColor: Colors.white);   
+       
+      }
+      
+      //Add task commands..............................................................................
+      else if(command == "set title" || command == "title") {
         setState(() {
           listeningText = "Hold on...";
         });
@@ -145,7 +196,7 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
           listeningText = "Hold on...";
         });
         _service.speak("Please press the record button to set time.", false);
-        Future.delayed(Duration(milliseconds: 100), () => _service.pauseListening());
+        Future.delayed(Duration(seconds: 100), () => _service.pauseListening());
         setState(() {
           isEnable = true;
           isTitle = 'time';
@@ -237,7 +288,7 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
 
         _service.speak('Setting category as Others', false);
 
-      } else if(command == "save task" || command == "task") {
+      } else if(command == "save task" || command == "save") {
         _service.speak("saving task", false);
         addVoiceTask();
         
@@ -736,12 +787,15 @@ addVoiceTask() async{
     ),
     ],),
     ) : null,
-    floatingActionButton: FloatingActionButton(onPressed: (){
+    floatingActionButton: GestureDetector(
+    onLongPress: () => Navigator.push(
+      context, MaterialPageRoute(builder: (context) => commands())),
+    child: FloatingActionButton(onPressed: (){
       addTodo();
     },
     backgroundColor: Color.fromARGB(255, 255, 178, 89),
     child: Icon(FontAwesomeIcons.plus, color: Colors.white, ),
-    ),
+    )),
 
     appBar: AppBar(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
