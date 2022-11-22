@@ -295,6 +295,16 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
         Future.delayed(Duration(seconds: 3), () => _service.speak("Please restart app to see new task", false));
 
       } 
+      // else {
+      //   _service.speak("Sorry I didn't understand that", false);
+
+      //   Fluttertoast.showToast(  
+      //   msg: "Sorry I didn't understand that. :(",  
+      //   toastLength: Toast.LENGTH_LONG,  
+      //   gravity: ToastGravity.BOTTOM,  
+      //   backgroundColor: Color.fromARGB(255, 255, 178, 89),  
+      //   textColor: Colors.white); 
+      // }
 }
 
 //initializing todo.................................................................................................
