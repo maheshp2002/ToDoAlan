@@ -11,6 +11,8 @@ class DrawerItem {
 class DrawerItems {
   static final backup =
       DrawerItem(title: "Backup", icon: FontAwesomeIcons.cloudArrowUp);
+  static final note =
+      DrawerItem(title: "Note", icon: FontAwesomeIcons.penToSquare);      
   static final notification =
       DrawerItem(title: "Notification  sound", icon: Icons.notifications_paused,);
   static final profile =
@@ -20,5 +22,5 @@ class DrawerItems {
   static final logout =
       DrawerItem(title: "Logout", icon: Icons.logout);
 
-  static final List<DrawerItem> all = [backup, notification, profile, theme, logout];
+  static final List<DrawerItem> all = [backup, note, notification, profile, theme, logout];
 }

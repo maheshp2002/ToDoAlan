@@ -1443,7 +1443,7 @@ makeListTile(Todo todo, index) {
     return showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-              title: Text("Alert",
+              title: Text("Alert!", textAlign: TextAlign.center,
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonBI')),
               content: Text("Are you sure to delete?",
               style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')),

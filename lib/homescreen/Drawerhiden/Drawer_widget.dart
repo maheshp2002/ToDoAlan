@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todoalan/Notes/noteView.dart';
 import 'package:todoalan/addTask/backupTask.dart';
 import 'package:todoalan/homescreen/avatarProgress.dart';
 import 'package:todoalan/homescreen/homescreen.dart';
@@ -87,6 +88,11 @@ class _DrawerWidgetState extends State<DrawerWidget>
 
                         Navigator.push(context, MaterialPageRoute(builder: (context)
                         => themeSelect()));
+                      }  else if (item.title == 'Note'){
+                        
+
+                        Navigator.push(context, MaterialPageRoute(builder: (context)
+                        => noteView()));
                       } else {
                        // isNotificationSound = prefs.getBool('isNotificationSound')
                       showDialog(
