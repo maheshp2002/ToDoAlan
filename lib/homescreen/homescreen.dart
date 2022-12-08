@@ -34,19 +34,20 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 //for main.dart
   late bool? isDark;
-  late bool? isNotificationSound;
   late int? NavBartheme;
   late List<Color> navColor;
+  late bool? isNotificationSound;
   
 
 //for AI
-  String listeningText = "";
   bool isEnable = false;
+  String listeningText = "";
   SharedPreferences? prefs1;
 
 //for noificatio speak
   late Notifications notifications;
   late StreamSubscription<NotificationEvent> subscription;
+
 
 class homepage extends StatefulWidget {
 
@@ -61,31 +62,26 @@ class homepage extends StatefulWidget {
 class homepageState extends State<homepage> with WidgetsBindingObserver {
 
 //local variables..................................................................................................
-  SharedPreferences? prefs;
-  List todos = [];
-  bool isCategory = false;
-  String catName = "";
   int sortno = 0;
-  bool isLoading = false;
-  bool isAlanActive = false;
-  FlutterTts flutterTts = FlutterTts();
-  ReceivePort? _receivePort;
-  User? user = FirebaseAuth.instance.currentUser;
+  List todos = [];
   String text = '';
-  bool isListening = false;
+  String catName = "";
   String isTitle = '';
+  bool isLoading = false;
+  bool isCategory = false;
+  SharedPreferences? prefs;
+  bool isListening = false;
+  bool isAlanActive = false;
+  ReceivePort? _receivePort;
   var _service = BackgroundStt();
+  FlutterTts flutterTts = FlutterTts();
+  User? user = FirebaseAuth.instance.currentUser;
 
   //speech recognition
-  late SpeechRecognition _speech;
-
-  bool _speechRecognitionAvailable = false;
-  bool _isListening = false;
-
   String transcription = '';
-
-
-
+  bool _isListening = false;
+  late SpeechRecognition _speech;
+  bool _speechRecognitionAvailable = false;
   final collectionReference = FirebaseFirestore.instance;
 
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
@@ -295,16 +291,6 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
         Future.delayed(Duration(seconds: 3), () => _service.speak("Please restart app to see new task", false));
 
       } 
-      // else {
-      //   _service.speak("Sorry I didn't understand that", false);
-
-      //   Fluttertoast.showToast(  
-      //   msg: "Sorry I didn't understand that. :(",  
-      //   toastLength: Toast.LENGTH_LONG,  
-      //   gravity: ToastGravity.BOTTOM,  
-      //   backgroundColor: Color.fromARGB(255, 255, 178, 89),  
-      //   textColor: Colors.white); 
-      // }
 }
 
 //initializing todo.................................................................................................
@@ -512,10 +498,10 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
     NotificationApi.init(initScheduled: true);
     initPlatformState(); //notification speak
     _initForegroundTask(); //foreground service
-    // listenNotifications();
     tz.initializeTimeZones();
 
     setupTodo(); //call setupTodo to initialize
+
     Future.delayed(Duration(milliseconds: 100), () async{
       setState(() {      
        sortno = todos.length;

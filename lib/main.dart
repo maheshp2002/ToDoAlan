@@ -271,7 +271,7 @@ class MyTaskHandler extends TaskHandler {
   void startListening() {
       notifications = new Notifications();
       try {
-        subscription = notifications.notificationStream!.listen(onData);
+        subscription = notifications.notificationStream!.asBroadcastStream().listen(onData);
       } on NotificationException catch (exception) {
         debugPrint(exception.toString());
       }

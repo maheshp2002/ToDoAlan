@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
+import 'package:todoalan/addTask/ToDo.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,11 +11,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:todoalan/login/services/googlesignin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class deleteAccount extends StatefulWidget {
-  final email;
   final name;
+  final email;
   deleteAccount({Key? key,this.email,this.name}) : super(key: key);
 
   @override
@@ -21,10 +23,42 @@ class deleteAccount extends StatefulWidget {
 }
 
 class _deleteAccountState extends State<deleteAccount> {
-  bool isDelete = false;
+  
+  List todos = [];
+  List todoIDS = [];
   bool isMail = false;
+  bool isDelete = false;
+  SharedPreferences? prefs;
   User? user = FirebaseAuth.instance.currentUser;
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin
+   = FlutterLocalNotificationsPlugin();
 
+  @override
+  void initState() {
+    setupDelete();
+    super.initState();
+  }
+
+  setupDelete() async{
+    prefs = await SharedPreferences.getInstance();
+    String? stringTodo = prefs!.getString(user!.email!);
+    List todoList = jsonDecode(stringTodo!);
+
+    int i = 0;
+
+    for (var todo in todoList) {
+      setState(() {
+        todos.add(Todo(description: '', id: 1, isCompleted: false, time: '', title: '', days: '', date1: '', date2: '', category: '').fromJson(todo));
+      });
+    }
+
+    for (var todo in todos) {
+      setState(() {
+        todoIDS.add(todos[i].id);
+        i++;
+      });
+    }
+  }
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,10 +66,7 @@ class _deleteAccountState extends State<deleteAccount> {
       appBar: AppBar(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             leading: IconButton(
-            icon: Icon(
-                    FontAwesomeIcons.arrowLeft,
-                    color: Theme.of(context).hintColor, // Change Custom Drawer Icon Color
-                  ),
+            icon: Icon(FontAwesomeIcons.arrowLeft, color: Theme.of(context).hintColor,),
             onPressed: () => Navigator.of(context).pop(),
             ),
             title:  Text(
@@ -235,16 +266,53 @@ class _deleteAccountState extends State<deleteAccount> {
               });
               
             }  catch(e){
-              debugPrint(e.toString()); 
+              debugPrint("#########image \n ${e.toString()}"); 
             } 
             
             try{
              await FirebaseFirestore.instance.collection("Users").doc(user!.email!).delete();
 
             } catch(e){
-              debugPrint(e.toString());
+              debugPrint("#########user collection \n ${e.toString()}"); 
             }  
 
+            try{
+              FirebaseFirestore.instance.collection('Users').doc(user!.email!).collection('backup').get().then((snapshot) {
+                for (DocumentSnapshot ds in snapshot.docs){
+                ds.reference.delete();
+              }});
+
+            } catch(e){
+              debugPrint("#########user collection \n ${e.toString()}"); 
+            }  
+
+            try{
+             FirebaseFirestore.instance.collection('Users').doc(user!.email!).collection('note').get().then((snapshot) {
+              for (DocumentSnapshot ds in snapshot.docs){
+              ds.reference.delete();
+              }});
+
+            } catch(e){
+              debugPrint("#########user collection \n ${e.toString()}"); 
+            }  
+
+            try{
+             FirebaseFirestore.instance.collection('Users').doc(user!.email!).collection('taskLength').get().then((snapshot) {
+              for (DocumentSnapshot ds in snapshot.docs){
+              ds.reference.delete();
+              }});
+
+            } catch(e){
+              debugPrint("#########user collection \n ${e.toString()}"); 
+            }  
+
+           try{
+            for(int i = 0; i < todoIDS.length; i++){
+              await flutterLocalNotificationsPlugin.cancel(todoIDS[i]);
+            }
+           } catch(e){
+              debugPrint("#########notification \n ${e.toString()}"); 
+            }
             SharedPreferences prefs = await SharedPreferences.getInstance();
             
             await prefs.setBool('validation', false); 
@@ -255,17 +323,17 @@ class _deleteAccountState extends State<deleteAccount> {
             try{
               await user?.delete();
             } catch(e){
-              debugPrint(e.toString());
+              debugPrint("#########user \n ${e.toString()}"); ;
             }
 
             try{
               FirebaseService service = new FirebaseService();
               await service.signOutFromGoogle();
             } catch(e){
-              debugPrint(e.toString());
+             debugPrint("#########signout \n ${e.toString()}"); ;
             }
 
-           
+
             NavBartheme = 1;
 
             RestartWidget.restartApp(context);
@@ -281,9 +349,9 @@ class _deleteAccountState extends State<deleteAccount> {
            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => MyApp()));
             
           } catch(e){
-            debugPrint(e.toString());
+            debugPrint("#########total \n ${e.toString()}"); ;
 
-            Navigator.of(context).pop();  
+            // Navigator.of(context).pop();  
 
             Fluttertoast.showToast(  
             msg: 'Unable to delete your account..!',  
