@@ -388,7 +388,6 @@ class _backupTaskState extends State<backupTask> {
             ]);           
       }})
       );
-
   }
 
 //make listview of task items................................................................................
@@ -510,13 +509,11 @@ makeListTile(String id, category, title, description, time, days, date, isSelect
                       gravity: ToastGravity.BOTTOM,  
                       backgroundColor: Color.fromARGB(255, 255, 178, 89),  
                       textColor: Colors.white);   
-
                     },
                     child: Text("Yes",
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI')))
               ],
-            ));
-            
+            ));            
   }
 
 //delete all task.......................................................................................................
@@ -601,8 +598,7 @@ Cleartask() async{
                     style: TextStyle(color: Theme.of(context).hintColor, fontFamily: 'BrandonLI'))),
                 ),
               ],
-            ));
-            
+            ));            
   }
 
 //build category...........................................................................................
