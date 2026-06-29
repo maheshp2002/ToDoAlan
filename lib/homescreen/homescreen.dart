@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:convert';
 import 'package:todoalan/AI/commands.dart';
+import 'package:rhino_flutter/rhino.dart';
+import 'package:picovoice_flutter/picovoice_manager.dart';
+import 'package:picovoice_flutter/picovoice_error.dart';
 import 'package:todoalan/Notes/noteView.dart';
 import 'package:todoalan/main.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +62,15 @@ class homepage extends StatefulWidget {
 }
 
 class homepageState extends State<homepage> with WidgetsBindingObserver {
+  final String accessKey =
+      "poVLzViS1LMJSHkQraFrV1dzdgN2TWLlMqs9u2cVi4LUKzFsq1XKtw==";
+
+  bool _isError = false;
+  String _errorMessage = "";
+
+  bool _listeningForCommand = false;
+  PicovoiceManager? _picovoiceManager;
+
 //local variables..................................................................................................
   int sortno = 0;
   List todos = [];
@@ -84,208 +97,317 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin(); //creating an instace of flutter notification plugin
 
-// Voice AI........................................................................................................
-  startService(
-    String? command,
-  ) async {
-    //Navigation commands..............................................................................
-    if (command == "open backup" || command == "openbackup") {
-      _service.speak("Opening backup", false);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => backupTask()));
-    } else if (command == "open theme" || command == "opentheme") {
-      _service.speak("Opening theme", false);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => themeSelect()));
-    } else if (command == "open profile" || command == "openprofile") {
-      _service.speak("Opening profile", false);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => profileUpdates()));
-    } else if (command == "open notes" || command == "opennotes") {
-      _service.speak("Opening notes", false);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => noteView()));
-    } else if (command == "open homepage" || command == "open home page") {
-      _service.speak("Opening homepage", false);
+  void _initPicovoice() async {
+    String platform = Platform.isAndroid
+        ? "android"
+        : Platform.isIOS
+            ? "ios"
+            : throw PicovoiceRuntimeException(
+                "This demo supports iOS and Android only.");
+    String keywordAsset = "assets/$platform/pico clock_$platform.ppn";
+    String contextAsset = "assets/$platform/clock_$platform.rhn";
+
+    try {
+      _picovoiceManager = await PicovoiceManager.create(accessKey, keywordAsset,
+          _wakeWordCallback, contextAsset, _inferenceCallback,
+          processErrorCallback: _errorCallback);
+      await _picovoiceManager?.start();
+    } on PicovoiceInvalidArgumentException catch (ex) {
+      _errorCallback(PicovoiceInvalidArgumentException(
+          "${ex.message}\nEnsure your accessKey '$accessKey' is a valid access key."));
+    } on PicovoiceActivationException {
+      _errorCallback(
+          PicovoiceActivationException("AccessKey activation error."));
+    } on PicovoiceActivationLimitException {
+      _errorCallback(PicovoiceActivationLimitException(
+          "AccessKey reached its device limit."));
+    } on PicovoiceActivationRefusedException {
+      _errorCallback(PicovoiceActivationRefusedException("AccessKey refused."));
+    } on PicovoiceActivationThrottledException {
+      _errorCallback(PicovoiceActivationThrottledException(
+          "AccessKey has been throttled."));
+    } on PicovoiceException catch (ex) {
+      _errorCallback(ex);
+    }
+  }
+
+  void _wakeWordCallback() {
+    setState(() {
+      _listeningForCommand = true;
+    });
+  }
+
+  void _inferenceCallback(RhinoInference inference) {
+    print(inference);
+    if (inference.isUnderstood!) {
+      Map<String, String> slots = inference.slots!;
+      if (inference.intent == 'Navigation') {
+      } else if (inference.intent! == 'availableCommands') {
+        Fluttertoast.showToast(
+            msg: "Try saying: \n" +
+                " - 'set timer for 5 minutes'\n" +
+                " - 'set alarm for tomorrow at 10:30am'\n" +
+                " - 'start stopwatch'\n" +
+                " - 'show me the time'",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.TOP,
+            timeInSecForIosWeb: 5,
+            backgroundColor: Color.fromRGBO(55, 125, 255, 1),
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      Fluttertoast.showToast(
+          msg: "Didn't understand command!\n" +
+              "Say 'EVOKE, what can I say?' to see a list of example commands",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 2,
+          backgroundColor: Color.fromRGBO(55, 125, 255, 1),
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+    setState(() {
+      _listeningForCommand = false;
+    });
+  }
+
+  void _errorCallback(PicovoiceException error) {
+    setState(() {
+      _isError = true;
+      _errorMessage = error.message!;
+    });
+  }
+
+  void _Navigation(Map<String, String> slots) {
+    String? action = slots['action'];
+    if (action == 'homepage') {
+      flutterTts.speak("Opening homepage");
       Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => HidenDrawer(
                     animationtime: 0.8,
                   )));
-    } else if (command == "go back" || command == "goback") {
-      _service.speak("going back", false);
-      Navigator.of(context).pop();
-
-      //Other commands..............................................................................
-    } else if (command == "tell me the commands" ||
-        command == "commands" ||
-        command == "tell me the command" ||
-        command == "command") {
-      _service.speak("Opening command page.", false);
+    } else if (action == 'theme') {
+      flutterTts.speak("Opening theme");
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => commands()));
-    } else if (command == "enable notification sound") {
-      _service.speak("Notification sound enabled.", false);
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      await prefs.setBool('isNotificationSound', true);
-
-      setState(() {
-        isNotificationSound = true;
-      });
-
-      Fluttertoast.showToast(
-          msg: 'Notification sound enabled..!',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-    } else if (command == "disable notification sound") {
-      _service.speak("Notification sound disabled.", false);
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      await prefs.setBool('isNotificationSound', false);
-
-      setState(() {
-        isNotificationSound = false;
-      });
-      homepageState().closeReceivePort();
-      stopListening();
-
-      Fluttertoast.showToast(
-          msg: 'Notification sound disabled..!',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-    }
-
-    //Add task commands..............................................................................
-    else if (command == "set title" || command == "title") {
-      setState(() {
-        listeningText = "Hold on...";
-      });
-      _service.speak("Please press the record button to set title.", false);
-      Future.delayed(
-          Duration(milliseconds: 100), () => _service.pauseListening());
-      setState(() {
-        isEnable = true;
-        isTitle = 'title';
-        listeningText = "Now tap record button and speak...";
-      });
-    } else if (command == "set description" || command == "description") {
-      setState(() {
-        listeningText = "Hold on...";
-      });
-      flutterTts.speak("Please press the record button to set description.");
-      Future.delayed(
-          Duration(milliseconds: 100), () => _service.pauseListening());
-      setState(() {
-        isEnable = true;
-        isTitle = 'description';
-        listeningText = "Now tap record button and speak...";
-      });
-    } else if (command == "set time" || command == "time") {
-      setState(() {
-        listeningText = "Hold on...";
-      });
-      _service.speak("Please press the record button to set time.", false);
-      Future.delayed(Duration(seconds: 100), () => _service.pauseListening());
-      setState(() {
-        isEnable = true;
-        isTitle = 'time';
-        listeningText = "Now tap record button and speak...";
-      });
-    } else if (command == "category is work" || command == "is work") {
-      setState(() {
-        globalCategory = 'Work';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Work",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as Work', false);
-    } else if (command == "category is personal" || command == "is personal") {
-      setState(() {
-        globalCategory = 'Personal';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Personal",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as personal', false);
-    } else if (command == "category is sports" || command == "is sports") {
-      setState(() {
-        globalCategory = 'Sports';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Sports",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as Sports', false);
-    } else if (command == "category is education" ||
-        command == "is education") {
-      setState(() {
-        globalCategory = 'Education';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Education",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as Education', false);
-    } else if (command == "category is medical" || command == "is medical") {
-      setState(() {
-        globalCategory = 'Medical';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Medical",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as Medical', false);
-    } else if (command == "category is others" || command == "is others") {
-      setState(() {
-        globalCategory = 'Others';
-      });
-
-      Fluttertoast.showToast(
-          msg: "Setting category as Others",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP,
-          backgroundColor: Color.fromARGB(255, 255, 178, 89),
-          textColor: Colors.white);
-
-      _service.speak('Setting category as Others', false);
-    } else if (command == "save task" || command == "save") {
-      _service.speak("saving task", false);
-      addVoiceTask();
-
-      Future.delayed(Duration(seconds: 3),
-          () => _service.speak("Please restart app to see new task", false));
+          context,
+          MaterialPageRoute(
+              builder: (context) =>themeSelect()));
+    } else if (action == 'profile') {
+      flutterTts.speak("Opening profile");
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>profileUpdates()));
+    } else if (action == 'back') {
+      flutterTts.speak("Going back");
+      Navigator.of(context).pop();
     }
   }
+// Voice AI........................................................................................................
+  // startService(
+  //   String? command,
+  // ) async {
+  //   //Navigation commands..............................................................................
+  //   if (command == "open backup" || command == "openbackup") {
+  //     _service.speak("Opening backup", false);
+  //     Navigator.push(
+  //         context, MaterialPageRoute(builder: (context) => backupTask()));
+  //   } else if (command == "open theme" || command == "opentheme") {
+  //     _service.speak("Opening theme", false);
+  //     Navigator.push(
+  //         context, MaterialPageRoute(builder: (context) => themeSelect()));
+  //   } else if (command == "open profile" || command == "openprofile") {
+  //     _service.speak("Opening profile", false);
+  //     Navigator.push(
+  //         context, MaterialPageRoute(builder: (context) => profileUpdates()));
+  //   } else if (command == "open notes" || command == "opennotes") {
+  //     _service.speak("Opening notes", false);
+  //     Navigator.push(
+  //         context, MaterialPageRoute(builder: (context) => noteView()));
+  //   } else if (command == "open homepage" || command == "open home page") {
+  //     _service.speak("Opening homepage", false);
+  //     Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //             builder: (context) => HidenDrawer(
+  //                   animationtime: 0.8,
+  //                 )));
+  //   } else if (command == "go back" || command == "goback") {
+  //     _service.speak("going back", false);
+  //     Navigator.of(context).pop();
+
+  //     //Other commands..............................................................................
+  //   } else if (command == "tell me the commands" ||
+  //       command == "commands" ||
+  //       command == "tell me the command" ||
+  //       command == "command") {
+  //     _service.speak("Opening command page.", false);
+  //     Navigator.push(
+  //         context, MaterialPageRoute(builder: (context) => commands()));
+  //   } else if (command == "enable notification sound") {
+  //     _service.speak("Notification sound enabled.", false);
+
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  //     await prefs.setBool('isNotificationSound', true);
+
+  //     setState(() {
+  //       isNotificationSound = true;
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: 'Notification sound enabled..!',
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+  //   } else if (command == "disable notification sound") {
+  //     _service.speak("Notification sound disabled.", false);
+
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  //     await prefs.setBool('isNotificationSound', false);
+
+  //     setState(() {
+  //       isNotificationSound = false;
+  //     });
+  //     homepageState().closeReceivePort();
+  //     stopListening();
+
+  //     Fluttertoast.showToast(
+  //         msg: 'Notification sound disabled..!',
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+  //   }
+
+  //   //Add task commands..............................................................................
+  //   else if (command == "set title" || command == "title") {
+  //     setState(() {
+  //       listeningText = "Hold on...";
+  //     });
+  //     _service.speak("Please press the record button to set title.", false);
+  //     Future.delayed(
+  //         Duration(milliseconds: 100), () => _service.pauseListening());
+  //     setState(() {
+  //       isEnable = true;
+  //       isTitle = 'title';
+  //       listeningText = "Now tap record button and speak...";
+  //     });
+  //   } else if (command == "set description" || command == "description") {
+  //     setState(() {
+  //       listeningText = "Hold on...";
+  //     });
+  //     flutterTts.speak("Please press the record button to set description.");
+  //     Future.delayed(
+  //         Duration(milliseconds: 100), () => _service.pauseListening());
+  //     setState(() {
+  //       isEnable = true;
+  //       isTitle = 'description';
+  //       listeningText = "Now tap record button and speak...";
+  //     });
+  //   } else if (command == "set time" || command == "time") {
+  //     setState(() {
+  //       listeningText = "Hold on...";
+  //     });
+  //     _service.speak("Please press the record button to set time.", false);
+  //     Future.delayed(Duration(seconds: 100), () => _service.pauseListening());
+  //     setState(() {
+  //       isEnable = true;
+  //       isTitle = 'time';
+  //       listeningText = "Now tap record button and speak...";
+  //     });
+  //   } else if (command == "category is work" || command == "is work") {
+  //     setState(() {
+  //       globalCategory = 'Work';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Work",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as Work', false);
+  //   } else if (command == "category is personal" || command == "is personal") {
+  //     setState(() {
+  //       globalCategory = 'Personal';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Personal",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as personal', false);
+  //   } else if (command == "category is sports" || command == "is sports") {
+  //     setState(() {
+  //       globalCategory = 'Sports';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Sports",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as Sports', false);
+  //   } else if (command == "category is education" ||
+  //       command == "is education") {
+  //     setState(() {
+  //       globalCategory = 'Education';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Education",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as Education', false);
+  //   } else if (command == "category is medical" || command == "is medical") {
+  //     setState(() {
+  //       globalCategory = 'Medical';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Medical",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as Medical', false);
+  //   } else if (command == "category is others" || command == "is others") {
+  //     setState(() {
+  //       globalCategory = 'Others';
+  //     });
+
+  //     Fluttertoast.showToast(
+  //         msg: "Setting category as Others",
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.TOP,
+  //         backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //         textColor: Colors.white);
+
+  //     _service.speak('Setting category as Others', false);
+  //   } else if (command == "save task" || command == "save") {
+  //     _service.speak("saving task", false);
+  //     addVoiceTask();
+
+  //     Future.delayed(Duration(seconds: 3),
+  //         () => _service.speak("Please restart app to see new task", false));
+  //   }
+  // }
 
 //initializing todo.................................................................................................
   setupTodo() async {
@@ -312,197 +434,197 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
 
 //speech recognition..................................................................................................
 // Platform messages are asynchronous, so we initialize in an async method.
-  void activateSpeechRecognizer() {
-    print('_MyAppState.activateSpeechRecognizer... ');
-    _speech = SpeechRecognition();
-    _speech.setAvailabilityHandler(onSpeechAvailability);
-    _speech.setRecognitionStartedHandler(onRecognitionStarted);
-    _speech.setRecognitionResultHandler(onRecognitionResult);
-    _speech.setRecognitionCompleteHandler(onRecognitionComplete);
-    _speech.setErrorHandler(errorHandler);
-    _speech.activate('fr_FR').then((res) {
-      setState(() => _speechRecognitionAvailable = res);
-    });
-  }
+  // void activateSpeechRecognizer() {
+  //   print('_MyAppState.activateSpeechRecognizer... ');
+  //   _speech = SpeechRecognition();
+  //   _speech.setAvailabilityHandler(onSpeechAvailability);
+  //   _speech.setRecognitionStartedHandler(onRecognitionStarted);
+  //   _speech.setRecognitionResultHandler(onRecognitionResult);
+  //   _speech.setRecognitionCompleteHandler(onRecognitionComplete);
+  //   _speech.setErrorHandler(errorHandler);
+  //   _speech.activate('fr_FR').then((res) {
+  //     setState(() => _speechRecognitionAvailable = res);
+  //   });
+  // }
 
-  void start() => _speech.activate('en_IN').then((_) {
-        return _speech.listen().then((result) {
-          print('_MyAppState.start => result $result');
-          setState(() {
-            listeningText = "Listening...";
-            _isListening = result;
-          });
-        });
-      });
+  // void start() => _speech.activate('en_IN').then((_) {
+  //       return _speech.listen().then((result) {
+  //         print('_MyAppState.start => result $result');
+  //         setState(() {
+  //           listeningText = "Listening...";
+  //           _isListening = result;
+  //         });
+  //       });
+  //     });
 
 //time conversions...............................................................................................
-  voiceTime(String time) {
-    int hour = 0;
-    int minute = 0;
-    // 5:40 a.m.
-    String tempHour = "";
-    String tempMinute = "";
+  // voiceTime(String time) {
+  //   int hour = 0;
+  //   int minute = 0;
+  //   // 5:40 a.m.
+  //   String tempHour = "";
+  //   String tempMinute = "";
 
-    if (time.substring(1, 2) == ":") {
-      setState(() {
-        tempHour = time.substring(0, 1);
-        tempMinute = time.substring(2, 5);
-        hour = int.parse(tempHour);
-        minute = int.parse(tempMinute);
-      });
-    } else {
-      setState(() {
-        tempHour = time.substring(0, 2);
-        tempMinute = time.substring(3, 6);
-        hour = int.parse(tempHour);
-        minute = int.parse(tempMinute);
-      });
-    }
+  //   if (time.substring(1, 2) == ":") {
+  //     setState(() {
+  //       tempHour = time.substring(0, 1);
+  //       tempMinute = time.substring(2, 5);
+  //       hour = int.parse(tempHour);
+  //       minute = int.parse(tempMinute);
+  //     });
+  //   } else {
+  //     setState(() {
+  //       tempHour = time.substring(0, 2);
+  //       tempMinute = time.substring(3, 6);
+  //       hour = int.parse(tempHour);
+  //       minute = int.parse(tempMinute);
+  //     });
+  //   }
 
-    try {
-      if (time.substring(6, 10) == "p.m." ||
-          time.substring(6, 10) == ".p.m" ||
-          time.substring(6, 9) == "p.m" ||
-          time.substring(6, 8) == "pm") {
-        setState(() {
-          hour += 12;
-        });
-      }
-    } catch (e) {
-      if (time.substring(5, 9) == "p.m." ||
-          time.substring(5, 9) == ".p.m" ||
-          time.substring(5, 8) == "p.m" ||
-          time.substring(5, 7) == "pm") {
-        setState(() {
-          hour += 12;
-        });
-      }
-    }
+  //   try {
+  //     if (time.substring(6, 10) == "p.m." ||
+  //         time.substring(6, 10) == ".p.m" ||
+  //         time.substring(6, 9) == "p.m" ||
+  //         time.substring(6, 8) == "pm") {
+  //       setState(() {
+  //         hour += 12;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     if (time.substring(5, 9) == "p.m." ||
+  //         time.substring(5, 9) == ".p.m" ||
+  //         time.substring(5, 8) == "p.m" ||
+  //         time.substring(5, 7) == "pm") {
+  //       setState(() {
+  //         hour += 12;
+  //       });
+  //     }
+  //   }
 
-    if (hour >= 24 || minute >= 60) {
-      flutterTts.speak("$hour:$minute is an invalid time.");
+  //   if (hour >= 24 || minute >= 60) {
+  //     flutterTts.speak("$hour:$minute is an invalid time.");
 
-      Fluttertoast.showToast(
-          msg: '$hour:$minute is an invalid time...!',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Color.fromARGB(255, 255, 0, 0),
-          textColor: Colors.white);
-    }
+  //     Fluttertoast.showToast(
+  //         msg: '$hour:$minute is an invalid time...!',
+  //         toastLength: Toast.LENGTH_LONG,
+  //         gravity: ToastGravity.BOTTOM,
+  //         backgroundColor: Color.fromARGB(255, 255, 0, 0),
+  //         textColor: Colors.white);
+  //   }
 
-    Future.delayed(Duration(seconds: 5), () {
-      try {
-        if (time.substring(6, 10) == "a.m." ||
-            time.substring(6, 10) == ".a.m" ||
-            time.substring(6, 9) == "a.m" ||
-            time.substring(6, 8) == "am") {
-          if (hour < 10) {
-            setState(() {
-              timeController.text =
-                  "0" + hour.toString() + ":" + minute.toString();
-            });
-          } else {
-            setState(() {
-              timeController.text = hour.toString() + ":" + minute.toString();
-            });
-          }
-        } else {
-          setState(() {
-            timeController.text = hour.toString() + ":" + minute.toString();
-          });
-        }
-      } catch (e) {
-        if (time.substring(5, 9) == "a.m." ||
-            time.substring(5, 9) == ".a.m" ||
-            time.substring(5, 8) == "a.m" ||
-            time.substring(5, 7) == "am") {
-          if (hour < 10) {
-            setState(() {
-              timeController.text =
-                  "0" + hour.toString() + ":" + minute.toString();
-            });
-          } else {
-            setState(() {
-              timeController.text = hour.toString() + ":" + minute.toString();
-            });
-          }
-        } else {
-          setState(() {
-            timeController.text = hour.toString() + ":" + minute.toString();
-          });
-        }
-      }
-    });
-  }
+  //   Future.delayed(Duration(seconds: 5), () {
+  //     try {
+  //       if (time.substring(6, 10) == "a.m." ||
+  //           time.substring(6, 10) == ".a.m" ||
+  //           time.substring(6, 9) == "a.m" ||
+  //           time.substring(6, 8) == "am") {
+  //         if (hour < 10) {
+  //           setState(() {
+  //             timeController.text =
+  //                 "0" + hour.toString() + ":" + minute.toString();
+  //           });
+  //         } else {
+  //           setState(() {
+  //             timeController.text = hour.toString() + ":" + minute.toString();
+  //           });
+  //         }
+  //       } else {
+  //         setState(() {
+  //           timeController.text = hour.toString() + ":" + minute.toString();
+  //         });
+  //       }
+  //     } catch (e) {
+  //       if (time.substring(5, 9) == "a.m." ||
+  //           time.substring(5, 9) == ".a.m" ||
+  //           time.substring(5, 8) == "a.m" ||
+  //           time.substring(5, 7) == "am") {
+  //         if (hour < 10) {
+  //           setState(() {
+  //             timeController.text =
+  //                 "0" + hour.toString() + ":" + minute.toString();
+  //           });
+  //         } else {
+  //           setState(() {
+  //             timeController.text = hour.toString() + ":" + minute.toString();
+  //           });
+  //         }
+  //       } else {
+  //         setState(() {
+  //           timeController.text = hour.toString() + ":" + minute.toString();
+  //         });
+  //       }
+  //     }
+  //   });
+  // }
 
-  void cancel() =>
-      _speech.cancel().then((_) => setState(() => _isListening = false));
+  // void cancel() =>
+  //     _speech.cancel().then((_) => setState(() => _isListening = false));
 
-  void stop() => _speech.stop().then((_) {
-        setState(() => _isListening = false);
-        _service.resumeListening();
+  // void stop() => _speech.stop().then((_) {
+  //       setState(() => _isListening = false);
+  //       _service.resumeListening();
 
-        Future.delayed(Duration(seconds: 2), () {
-          setState(() {
-            isEnable = false;
-          });
-          _service.speak(
-              isTitle == 'title'
-                  ? 'setting title as $transcription'
-                  : isTitle == 'description'
-                      ? 'setting description as $transcription'
-                      : 'setting time ${transcription}',
-              false);
+  //       Future.delayed(Duration(seconds: 2), () {
+  //         setState(() {
+  //           isEnable = false;
+  //         });
+  //         _service.speak(
+  //             isTitle == 'title'
+  //                 ? 'setting title as $transcription'
+  //                 : isTitle == 'description'
+  //                     ? 'setting description as $transcription'
+  //                     : 'setting time ${transcription}',
+  //             false);
 
-          Fluttertoast.showToast(
-              msg: isTitle == 'title'
-                  ? 'Title is $transcription'
-                  : isTitle == 'description'
-                      ? 'Description is $transcription'
-                      : 'time is ${transcription}',
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.TOP,
-              backgroundColor: Color.fromARGB(255, 255, 178, 89),
-              textColor: Colors.white);
-        });
-      });
+  //         Fluttertoast.showToast(
+  //             msg: isTitle == 'title'
+  //                 ? 'Title is $transcription'
+  //                 : isTitle == 'description'
+  //                     ? 'Description is $transcription'
+  //                     : 'time is ${transcription}',
+  //             toastLength: Toast.LENGTH_LONG,
+  //             gravity: ToastGravity.TOP,
+  //             backgroundColor: Color.fromARGB(255, 255, 178, 89),
+  //             textColor: Colors.white);
+  //       });
+  //     });
 
-  void onSpeechAvailability(bool result) =>
-      setState(() => _speechRecognitionAvailable = result);
+  // void onSpeechAvailability(bool result) =>
+  //     setState(() => _speechRecognitionAvailable = result);
 
-  void onRecognitionStarted() {
-    setState(() => _isListening = true);
-  }
+  // void onRecognitionStarted() {
+  //   setState(() => _isListening = true);
+  // }
 
-  void onRecognitionResult(String text) {
-    print('_MyAppState.onRecognitionResult... $text');
-    setState(() => transcription = text);
-  }
+  // void onRecognitionResult(String text) {
+  //   print('_MyAppState.onRecognitionResult... $text');
+  //   setState(() => transcription = text);
+  // }
 
-  void onRecognitionComplete(String text) {
-    print('_MyAppState.onRecognitionComplete... $text');
-    setState(() => _isListening = false);
+  // void onRecognitionComplete(String text) {
+  //   print('_MyAppState.onRecognitionComplete... $text');
+  //   setState(() => _isListening = false);
 
-    Future.delayed(Duration(milliseconds: 100), () {
-      setState(() {
-        listeningText = "Hold on...";
-      });
+  //   Future.delayed(Duration(milliseconds: 100), () {
+  //     setState(() {
+  //       listeningText = "Hold on...";
+  //     });
 
-      isTitle == 'time'
-          ? voiceTime(transcription)
-          : isTitle == 'title'
-              ? setState(() {
-                  titleController.text = transcription;
-                })
-              : setState(() {
-                  descriptionController.text = transcription;
-                });
+  //     isTitle == 'time'
+  //         ? voiceTime(transcription)
+  //         : isTitle == 'title'
+  //             ? setState(() {
+  //                 titleController.text = transcription;
+  //               })
+  //             : setState(() {
+  //                 descriptionController.text = transcription;
+  //               });
 
-      stop();
-    });
-  }
+  //     stop();
+  //   });
+  // }
 
-  void errorHandler() => activateSpeechRecognizer();
+  // void errorHandler() => activateSpeechRecognizer();
 
 //save data to todo..................................................................................................
   void saveTodo() {
@@ -528,17 +650,17 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
         sortno = todos.length;
       });
     });
+    _initPicovoice();
 
-    _service.startSpeechListenService; //start sst
+    // _service.startSpeechListenService; //start sst
 
     // init sst
-    _service.getSpeechResults().onData((data) {
-      print("getSpeechResults: ${data.result} , ${data.isPartial} [STT Mode]");
+    // _service.getSpeechResults().onData((data) {
+    //   print("getSpeechResults: ${data.result} , ${data.isPartial} [STT Mode]");
+    //   startService(data.result);
+    // });
 
-      startService(data.result);
-    });
-
-    activateSpeechRecognizer();
+    // activateSpeechRecognizer();
 
     super.initState();
   }
@@ -820,8 +942,8 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
                               child: Icon(
                                   _isListening ? Icons.mic : Icons.mic_none,
                                   size: 20),
-                              onPressed: () =>
-                                  !_isListening ? start() : stop()),
+                              onPressed: () => flutterTts.speak("hey there")),
+                          // !_isListening ? start() : stop()),
                         )),
                     Container(
                         width: 100,
@@ -1704,173 +1826,3 @@ class homepageState extends State<homepage> with WidgetsBindingObserver {
             ));
   }
 }
-
-// comment code.....................................................................................................
-//alan voice commands...............................................................................................
-
-//   handleCmd(Map<String, dynamic> res) async{
-//     int id = Random().nextInt(2147483637);
-//     Todo t = Todo(id: id, title: '', description: '', isCompleted: false, time: '', category: '');
-//     switch (res["command"]) {
-//       case "Add Task":
-//         addTodo();
-//         print('Opening');
-//         break;
-
-//       case "Previous":
-//         Navigator.of(context).pop();
-//         print('previous');
-//         break;
-
-//       case "Go back":
-//         Navigator.of(context).pop();
-//         print('Go back');
-//         break;
-
-//       case "HomePage":
-//         Navigator.push(
-//             context, MaterialPageRoute(builder: (context) => HidenDrawer(animationtime: 0.8,)));
-//         print('Opening');
-//         break;
-
-//       case "Open profile":
-//         print('Open profile');
-//         Navigator.push(
-//           context, MaterialPageRoute(builder: (context) => profileUpdates()));;
-//         break;
-
-//       case "Open theme":
-//         print('Open theme');
-//         Navigator.push(
-//           context, MaterialPageRoute(builder: (context) => themeSelect()));
-//         break;
-
-//       case "Open backup":
-//         print('Open backup');
-//         Navigator.push(
-//           context, MaterialPageRoute(builder: (context) => backupTask()));;
-//         break;
-
-//       case "Disable notification sound":
-//         print('Disable notification sound');
-//         SharedPreferences prefs = await SharedPreferences.getInstance();
-//         await prefs.setBool('isNotificationSound', false);
-//         setState(() {
-//           isNotificationSound = false;
-//         });
-//         //print("######################################$isNotificationSound");
-//         break;
-
-//       case "Enable notification sound":
-//         print('Enable notification sound');
-//         SharedPreferences prefs = await SharedPreferences.getInstance();
-//         await prefs.setBool('isNotificationSound', true);
-//         setState(() {
-//           isNotificationSound = true;
-//         });
-//         //print("######################################$isNotificationSound");
-//         break;
-//       //add task.......................................................
-//       case "getTitle":
-//         titleController.text = res["text"];
-//         currentState.title = titleController.text;
-//         setVisuals();
-//         print('Tell me the title');
-//         break;
-
-//       case "Description":
-//         descriptionController.text = res["text"];
-//         currentState.description = descriptionController.text;
-//         setVisuals();
-//         print('Tell me the description');
-//         break;
-
-//       case "Hours":
-//         hoursText = res["text"];
-//         currentState.hours = hoursText;
-//         setVisuals();
-//         print('Tell me the hours');
-//         break;
-
-//       case "Minutes":
-//         minutesText = res["text"];
-//         currentState.minutes = minutesText;
-//         setVisuals();
-//         print('Tell me the minutes');
-//         break;
-
-//  //category.......................................................
-//       case "Work":
-//         print('Selecting Work');
-//         addTaskState(todo: t, isEdit: false).getCategory('Work');
-//         break;
-
-//       case "Personal":
-//         print('Selecting Personal');
-//         addTaskState(todo: t, isEdit: false).getCategory('Personal');
-//         break;
-
-//       case "Sports":
-//         print('Selecting Sports');
-//         addTaskState(todo: t, isEdit: false).getCategory('Sports');
-//         break;
-
-//       case "Education":
-//         print('Selecting Education');
-//         addTaskState(todo: t, isEdit: false).getCategory('Education');
-//         break;
-
-//       case "Medical":
-//         print('Selecting Medical');
-//         addTaskState(todo: t, isEdit: false).getCategory('Medical');
-//         break;
-
-//       case "Others":
-//         print('Selecting Others');
-//         addTaskState(todo: t, isEdit: false).getCategory('Others');
-//         break;
-
-//       case "Save task":
-//         print('Saving task');
-//         addVoiceTask();
-//         break;
-
-//       default:
-//         print("Command not found");
-//         break;
-//     }
-//   }
-
-//   //Alan button..................................................................................................
-//   setUpalan() {
-//    setState(() {
-//       isAlanActive = true;
-//     });
-//     AlanVoice.addButton("4ce15c488ee34010696168ed2b4dade32e956eca572e1d8b807a3e2338fdd0dc/stage",
-//         buttonAlign: AlanVoice.BUTTON_ALIGN_LEFT,
-//         bottomMargin: 100);
-//     AlanVoice.callbacks.add((command) => handleCmd(command.data));
-//   }
-
-// _onBackgroundFetch() async {
-//   initPlatformState();
-//   flutterTts.speak('[BackgroundFetch] started: ');
-//   BackgroundFetch.finish;
-// }
-
-// void _onClickEnable(enabled) {
-//   setState(() {
-//     _enabled = enabled;
-//   });
-//   if (enabled) {
-//     BackgroundFetch.start().then((int status) {
-//       print('[BackgroundFetch] start success: $status');
-//     }).catchError((e) {
-//       print('[BackgroundFetch] start FAILURE: $e');
-//     });
-//   } else {
-//     BackgroundFetch.stop().then((int status) {
-//       print('[BackgroundFetch] stop success: $status');
-//     });
-//   }
-// }
